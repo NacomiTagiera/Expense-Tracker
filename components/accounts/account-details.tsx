@@ -46,7 +46,7 @@ export function AccountDetails({ accountId }: { accountId: string }) {
     <div className="space-y-4">
       <Button variant="ghost" onClick={() => router.push('/dashboard')}>
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Accounts
+        Back to Wallets
       </Button>
       <Card>
         <CardHeader>

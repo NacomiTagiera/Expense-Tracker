@@ -52,7 +52,7 @@ export const accountRouter = router({
       if (ownedAccountsCount >= 3) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Maximum of 3 accounts allowed per user',
+          message: 'Maximum of 3 wallets allowed per user',
         });
       }
 
@@ -120,7 +120,7 @@ export const accountRouter = router({
       if (!account) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Account not found or access denied',
+          message: 'Wallet not found or access denied',
         });
       }
 
@@ -149,7 +149,7 @@ export const accountRouter = router({
       if (!account) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Account not found or access denied',
+          message: 'Wallet not found or access denied',
         });
       }
 
@@ -202,7 +202,7 @@ export const accountRouter = router({
       if (!account) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Account not found',
+          message: 'Wallet not found',
         });
       }
 

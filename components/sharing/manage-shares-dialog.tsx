@@ -146,7 +146,7 @@ export function ManageSharesDialog({ accountId, account }: Props) {
 
           {activeShares.length === 0 && pendingShares.length === 0 && (
             <div className="py-8 text-center text-muted-foreground">
-              No users have access to this account yet
+              No users have access to this wallet yet
             </div>
           )}
         </div>

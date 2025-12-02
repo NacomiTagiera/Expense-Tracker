@@ -190,7 +190,7 @@ export function ReportsDashboard({ accountId }: Props) {
             />
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
+          {/* <div className="grid gap-6 md:grid-cols-2">
             <CategoryChart
               title="Income by Category"
               description="Breakdown of your income sources"
@@ -203,12 +203,12 @@ export function ReportsDashboard({ accountId }: Props) {
               data={expenseByCategory || []}
               type="EXPENSE"
             />
-          </div>
+          </div> */}
 
           {userData && userData.length > 1 && (
             <MemberChart
               title="Spending by Member"
-              description="Income and expenses breakdown by account members"
+              description="Income and expenses breakdown by wallet members"
               data={userData}
             />
           )}
@@ -216,12 +216,12 @@ export function ReportsDashboard({ accountId }: Props) {
           {subscriptionData && subscriptionData.length > 0 && (
             <SubscriptionChart
               title="Subscription Spending"
-              description="Total spending on recurring subscriptions"
+              description="Total spending on recurring transactions"
               data={subscriptionData}
             />
           )}
 
-          {summary && Object.keys(summary.categoryBreakdown).length > 0 && (
+          {/* {summary && Object.keys(summary.categoryBreakdown).length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle>Category Details</CardTitle>
@@ -270,7 +270,7 @@ export function ReportsDashboard({ accountId }: Props) {
                 </div>
               </CardContent>
             </Card>
-          )}
+          )} */}
         </>
       )}
     </div>

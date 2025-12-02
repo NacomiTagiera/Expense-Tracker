@@ -38,9 +38,9 @@ export function InvitationsDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Account Invitations</DialogTitle>
+          <DialogTitle>Wallet Invitations</DialogTitle>
           <DialogDescription>
-            Manage your pending account sharing invitations
+            Manage your pending wallet sharing invitations
           </DialogDescription>
         </DialogHeader>
 

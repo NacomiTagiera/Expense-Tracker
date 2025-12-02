@@ -19,7 +19,7 @@ export function AccountList() {
     return (
       <div className="rounded-lg border border-dashed p-12 text-center">
         <p className="text-muted-foreground">
-          No accounts yet. Create your first account to get started.
+          No wallets yet. Create your first wallet to get started.
         </p>
       </div>
     );

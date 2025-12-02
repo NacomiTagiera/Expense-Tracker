@@ -49,7 +49,7 @@ export function AccountCard({ account }: Props) {
   const handleDelete = () => {
     if (
       confirm(
-        'Are you sure you want to delete this account? This action cannot be undone.',
+        'Are you sure you want to delete this wallet? This action cannot be undone.',
       )
     ) {
       deleteMutation.mutate({ id: account.id });

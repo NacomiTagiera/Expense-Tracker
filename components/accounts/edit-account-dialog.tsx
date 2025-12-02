@@ -91,12 +91,12 @@ export function EditAccountDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit Account</DialogTitle>
-          <DialogDescription>Update your account details</DialogDescription>
+          <DialogTitle>Edit wallet</DialogTitle>
+          <DialogDescription>Update your wallet details</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="edit-name">Account Name</Label>
+            <Label htmlFor="edit-name">wallet Name</Label>
             <Input
               id="edit-name"
               value={name}

@@ -1,6 +1,5 @@
 'use client';
 
-import type { CategoryType } from '@prisma/client';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,6 +13,8 @@ import {
 } from '@/components/ui/select';
 import { trpc } from '@/lib/trpc-client';
 import { CategoryCard } from './category-card';
+
+type CategoryType = 'INCOME' | 'EXPENSE'
 
 interface Props {
   accountId: string;
@@ -54,8 +55,6 @@ export function CategoryList({ accountId }: Props) {
                 <SelectItem value="ALL">All Types</SelectItem>
                 <SelectItem value="INCOME">Income</SelectItem>
                 <SelectItem value="EXPENSE">Expense</SelectItem>
-                <SelectItem value="INVESTMENT">Investment</SelectItem>
-                <SelectItem value="SUBSCRIPTION">Subscription</SelectItem>
               </SelectContent>
             </Select>
           </div>

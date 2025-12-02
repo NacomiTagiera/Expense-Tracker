@@ -25,7 +25,7 @@ export const shareRouter = router({
       if (!account) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Only account owners can invite users',
+          message: 'Only wallet owners can invite users',
         });
       }
 
@@ -152,7 +152,7 @@ export const shareRouter = router({
       if (!account) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Only account owners can remove access',
+          message: 'Only wallet owners can remove access',
         });
       }
 

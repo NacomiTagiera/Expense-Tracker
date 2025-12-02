@@ -75,19 +75,19 @@ export function CreateAccountDialog() {
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          New Account
+          New Wallet
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Account</DialogTitle>
+          <DialogTitle>Create Wallet</DialogTitle>
           <DialogDescription>
-            Add a new account to track your finances
+            Add a new wallet to track your finances
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Account Name</Label>
+            <Label htmlFor="name">Wallet Name</Label>
             <Input
               id="name"
               placeholder="Personal Checking"
@@ -139,7 +139,7 @@ export function CreateAccountDialog() {
               {createMutation.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Create Account
+              Create wallet
             </Button>
           </div>
         </form>
