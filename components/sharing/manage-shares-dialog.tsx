@@ -1,7 +1,7 @@
 'use client';
 
-import { WalletShareStatus } from '@prisma/client';
-import { Loader2, Trash2, Users } from 'lucide-react';
+import { WalletSharePermission, WalletShareStatus } from '@prisma/client';
+import { Loader2, Settings, Trash2, Users } from 'lucide-react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -42,9 +42,28 @@ export function ManageSharesDialog({ walletId, wallet }: Props) {
     },
   });
 
+  const updatePermissionMutation = trpc.share.updatePermission.useMutation({
+    onSuccess: () => {
+      utils.wallet.getById.invalidate();
+    },
+  });
+
   const handleRemoveAccess = (userId: string) => {
     if (confirm("Are you sure you want to remove this user's access?")) {
       removeAccessMutation.mutate({ walletId, userId });
+    }
+  };
+
+  const handleUpdatePermission = (userId: string, currentPermission: string) => {
+    const newPermission = currentPermission === 'VIEW' ? WalletSharePermission.EDIT : WalletSharePermission.VIEW;
+    const action = newPermission === WalletSharePermission.EDIT ? 'grant edit access' : 'revoke edit access';
+
+    if (confirm(`Are you sure you want to ${action} for this user?`)) {
+      updatePermissionMutation.mutate({
+        walletId,
+        userId,
+        permission: newPermission,
+      });
     }
   };
 
@@ -88,6 +107,19 @@ export function ManageSharesDialog({ walletId, wallet }: Props) {
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline">{share.permission}</Badge>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleUpdatePermission(share.userId, share.permission)}
+                        disabled={updatePermissionMutation.isPending}
+                        title={`Change to ${share.permission === 'VIEW' ? 'Edit' : 'View'} permission`}
+                      >
+                        {updatePermissionMutation.isPending ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <Settings className="size-4" />
+                        )}
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"

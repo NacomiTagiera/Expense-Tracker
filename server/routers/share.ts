@@ -167,4 +167,65 @@ export const shareRouter = router({
 
       return { success: true };
     }),
+
+  updatePermission: protectedProcedure
+    .input(
+      z.object({
+        walletId: z.string(),
+        userId: z.string(),
+        permission: z.nativeEnum(WalletSharePermission),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const wallet = await ctx.prisma.wallet.findFirst({
+        where: {
+          id: input.walletId,
+          userId: ctx.session.userId,
+        },
+      });
+
+      if (!wallet) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Only wallet owners can update permissions',
+        });
+      }
+
+      const share = await ctx.prisma.walletShare.findUnique({
+        where: {
+          walletId_userId: {
+            walletId: input.walletId,
+            userId: input.userId,
+          },
+        },
+      });
+
+      if (!share) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'User does not have access to this wallet',
+        });
+      }
+
+      if (share.status !== WalletShareStatus.ACCEPTED) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Cannot update permissions for pending or declined shares',
+        });
+      }
+
+      const updatedShare = await ctx.prisma.walletShare.update({
+        where: {
+          walletId_userId: {
+            walletId: input.walletId,
+            userId: input.userId,
+          },
+        },
+        data: {
+          permission: input.permission,
+        },
+      });
+
+      return updatedShare;
+    }),
 });

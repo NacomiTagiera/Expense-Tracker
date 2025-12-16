@@ -41,6 +41,7 @@ export function CreateWalletDialog() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [currency, setCurrency] = useState('USD');
+  const [balance, setBalance] = useState('');
   const [description, setDescription] = useState('');
   const [error, setError] = useState('');
 
@@ -52,6 +53,7 @@ export function CreateWalletDialog() {
       setOpen(false);
       setName('');
       setCurrency('USD');
+      setBalance('');
       setDescription('');
       setError('');
     },
@@ -66,6 +68,7 @@ export function CreateWalletDialog() {
     createMutation.mutate({
       name,
       currency,
+      balance: balance ? parseFloat(balance) : 0,
       description: description || undefined,
     });
   };
@@ -115,6 +118,18 @@ export function CreateWalletDialog() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="balance">Initial Balance</Label>
+            <Input
+              id="balance"
+              type="number"
+              step="0.01"
+              placeholder="0.00"
+              value={balance}
+              onChange={(e) => setBalance(e.target.value)}
+              disabled={createMutation.isPending}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="description">Description (Optional)</Label>

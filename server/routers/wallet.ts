@@ -42,6 +42,7 @@ export const walletRouter = router({
         name: z.string().min(1),
         currency: z.string().default('USD'),
         description: z.string().optional(),
+        balance: z.number().default(0),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -60,6 +61,7 @@ export const walletRouter = router({
         data: {
           name: input.name,
           currency: input.currency,
+          balance: input.balance,
           description: input.description,
           userId: ctx.session.userId,
           owners: {
