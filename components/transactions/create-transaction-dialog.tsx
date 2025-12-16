@@ -27,11 +27,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { trpc } from '@/lib/trpc-client';
 
 interface CreateTransactionDialogProps {
-  accountId: string;
+  walletId: string;
 }
 
 export function CreateTransactionDialog({
-  accountId,
+  walletId,
 }: CreateTransactionDialogProps) {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState('');
@@ -46,8 +46,8 @@ export function CreateTransactionDialog({
   const createMutation = trpc.transaction.create.useMutation({
     onSuccess: () => {
       utils.transaction.list.invalidate();
-      utils.account.getById.invalidate();
-      utils.account.list.invalidate();
+      utils.wallet.getById.invalidate();
+      utils.wallet.list.invalidate();
       setOpen(false);
       setAmount('');
       setType('EXPENSE');
@@ -72,7 +72,7 @@ export function CreateTransactionDialog({
     }
 
     createMutation.mutate({
-      accountId,
+      walletId,
       amount: amountNum,
       type,
       categoryId,
@@ -132,7 +132,7 @@ export function CreateTransactionDialog({
           <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
             <CategorySelector
-              accountId={accountId}
+              walletId={walletId}
               id="category"
               value={categoryId}
               onValueChange={setCategoryId}

@@ -26,7 +26,7 @@ export function InvitationsDialog({ open, onOpenChange }: Props) {
   const respondMutation = trpc.share.respondToInvitation.useMutation({
     onSuccess: () => {
       utils.share.listInvitations.invalidate();
-      utils.account.list.invalidate();
+      utils.wallet.list.invalidate();
     },
   });
 
@@ -61,14 +61,14 @@ export function InvitationsDialog({ open, onOpenChange }: Props) {
                     <div>
                       <div className="flex items-center justify-between">
                         <h3 className="font-semibold">
-                          {invitation.account.name}
+                          {invitation.wallet.name}
                         </h3>
                         <Badge>{invitation.permission}</Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
                         Invited by{' '}
-                        {invitation.account.user.name ||
-                          invitation.account.user.email}
+                        {invitation.wallet.user.name ||
+                          invitation.wallet.user.email}
                       </p>
                     </div>
                     <div className="flex gap-2">

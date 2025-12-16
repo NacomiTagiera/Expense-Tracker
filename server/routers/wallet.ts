@@ -1,11 +1,11 @@
-import { AccountShareStatus, CategoryType } from '@prisma/client';
+import { WalletShareStatus, CategoryType } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { protectedProcedure, router } from '../trpc';
 
-export const accountRouter = router({
+export const walletRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
-    const accounts = await ctx.prisma.account.findMany({
+    const wallets = await ctx.prisma.wallet.findMany({
       where: {
         OR: [
           { userId: ctx.session.userId },
@@ -13,7 +13,7 @@ export const accountRouter = router({
             shares: {
               some: {
                 userId: ctx.session.userId,
-                status: AccountShareStatus.ACCEPTED,
+                status: WalletShareStatus.ACCEPTED,
               },
             },
           },
@@ -30,9 +30,9 @@ export const accountRouter = router({
       orderBy: { createdAt: 'desc' },
     });
 
-    return accounts.map((account) => ({
-      ...account,
-      balance: Number(account.balance),
+    return wallets.map((wallet) => ({
+      ...wallet,
+      balance: Number(wallet.balance),
     }));
   }),
 
@@ -45,18 +45,18 @@ export const accountRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const ownedAccountsCount = await ctx.prisma.account.count({
+      const ownedWalletsCount = await ctx.prisma.wallet.count({
         where: { userId: ctx.session.userId },
       });
 
-      if (ownedAccountsCount >= 3) {
+      if (ownedWalletsCount >= 3) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Maximum of 3 wallets allowed per user',
         });
       }
 
-      const account = await ctx.prisma.account.create({
+      const wallet = await ctx.prisma.wallet.create({
         data: {
           name: input.name,
           currency: input.currency,
@@ -97,7 +97,7 @@ export const accountRouter = router({
         },
       });
 
-      return account;
+      return wallet;
     }),
 
   update: protectedProcedure
@@ -110,21 +110,21 @@ export const accountRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const account = await ctx.prisma.account.findFirst({
+      const wallet = await ctx.prisma.wallet.findFirst({
         where: {
           id: input.id,
           userId: ctx.session.userId,
         },
       });
 
-      if (!account) {
+      if (!wallet) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Wallet not found or access denied',
         });
       }
 
-      const updated = await ctx.prisma.account.update({
+      const updated = await ctx.prisma.wallet.update({
         where: { id: input.id },
         data: {
           name: input.name,
@@ -139,21 +139,21 @@ export const accountRouter = router({
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const account = await ctx.prisma.account.findFirst({
+      const wallet = await ctx.prisma.wallet.findFirst({
         where: {
           id: input.id,
           userId: ctx.session.userId,
         },
       });
 
-      if (!account) {
+      if (!wallet) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Wallet not found or access denied',
         });
       }
 
-      await ctx.prisma.account.delete({
+      await ctx.prisma.wallet.delete({
         where: { id: input.id },
       });
 
@@ -163,7 +163,7 @@ export const accountRouter = router({
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      const account = await ctx.prisma.account.findFirst({
+      const wallet = await ctx.prisma.wallet.findFirst({
         where: {
           id: input.id,
           OR: [
@@ -172,7 +172,7 @@ export const accountRouter = router({
               shares: {
                 some: {
                   userId: ctx.session.userId,
-                  status: AccountShareStatus.ACCEPTED,
+                  status: WalletShareStatus.ACCEPTED,
                 },
               },
             },
@@ -199,21 +199,21 @@ export const accountRouter = router({
         },
       });
 
-      if (!account) {
+      if (!wallet) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Wallet not found',
         });
       }
 
-      const isOwner = account.userId === ctx.session.userId;
-      const currentUserShare = account.shares.find(
+      const isOwner = wallet.userId === ctx.session.userId;
+      const currentUserShare = wallet.shares.find(
         (share) => share.userId === ctx.session.userId,
       );
 
       return {
-        ...account,
-        balance: Number(account.balance),
+        ...wallet,
+        balance: Number(wallet.balance),
         isOwner,
         currentUserShare: currentUserShare
           ? {
@@ -224,3 +224,4 @@ export const accountRouter = router({
       };
     }),
 });
+

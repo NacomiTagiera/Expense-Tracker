@@ -2,10 +2,10 @@
 
 import { Loader2 } from 'lucide-react';
 import { trpc } from '@/lib/trpc-client';
-import { AccountCard } from './account-card';
+import { WalletCard } from './wallet-card';
 
-export function AccountList() {
-  const { data: accounts, isLoading } = trpc.account.list.useQuery();
+export function WalletList() {
+  const { data: wallets, isLoading } = trpc.wallet.list.useQuery();
 
   if (isLoading) {
     return (
@@ -15,7 +15,7 @@ export function AccountList() {
     );
   }
 
-  if (!accounts || accounts.length === 0) {
+  if (!wallets || wallets.length === 0) {
     return (
       <div className="rounded-lg border border-dashed p-12 text-center">
         <p className="text-muted-foreground">
@@ -27,9 +27,10 @@ export function AccountList() {
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {accounts.map((account) => (
-        <AccountCard key={account.id} account={account} />
+      {wallets.map((wallet) => (
+        <WalletCard key={wallet.id} wallet={wallet} />
       ))}
     </div>
   );
 }
+

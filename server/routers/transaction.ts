@@ -7,7 +7,7 @@ export const transactionRouter = router({
   list: protectedProcedure
     .input(
       z.object({
-        accountId: z.string(),
+        walletId: z.string(),
         type: z.nativeEnum(TransactionType).optional(),
         categoryId: z.string().optional(),
         startDate: z.date().optional(),
@@ -17,9 +17,9 @@ export const transactionRouter = router({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const hasAccess = await ctx.prisma.account.findFirst({
+      const hasAccess = await ctx.prisma.wallet.findFirst({
         where: {
-          id: input.accountId,
+          id: input.walletId,
           OR: [
             { userId: ctx.session.userId },
             {
@@ -42,7 +42,7 @@ export const transactionRouter = router({
       }
 
       const where = {
-        accountId: input.accountId,
+        walletId: input.walletId,
         ...(input.type && { type: input.type }),
         ...(input.categoryId && { categoryId: input.categoryId }),
         ...(input.startDate && { date: { gte: input.startDate } }),
@@ -62,7 +62,7 @@ export const transactionRouter = router({
               name: true,
             },
           },
-          subscription: {
+          recurringTransaction: {
             select: {
               id: true,
               name: true,
@@ -91,10 +91,10 @@ export const transactionRouter = router({
           ...transaction,
           category: transaction.category?.name,
           categoryId: transaction.categoryId,
-          subscription: transaction.subscription
+          recurringTransaction: transaction.recurringTransaction
             ? {
-                id: transaction.subscription.id,
-                name: transaction.subscription.name,
+                id: transaction.recurringTransaction.id,
+                name: transaction.recurringTransaction.name,
               }
             : null,
           user: transaction.user
@@ -112,7 +112,7 @@ export const transactionRouter = router({
   create: protectedProcedure
     .input(
       z.object({
-        accountId: z.string(),
+        walletId: z.string(),
         amount: z.number().positive(),
         type: z.nativeEnum(TransactionType),
         categoryId: z.string(),
@@ -121,9 +121,9 @@ export const transactionRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const account = await ctx.prisma.account.findFirst({
+      const wallet = await ctx.prisma.wallet.findFirst({
         where: {
-          id: input.accountId,
+          id: input.walletId,
           OR: [
             { userId: ctx.session.userId },
             {
@@ -139,7 +139,7 @@ export const transactionRouter = router({
         },
       });
 
-      if (!account) {
+      if (!wallet) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Access denied',
@@ -148,7 +148,7 @@ export const transactionRouter = router({
 
       const transaction = await ctx.prisma.transaction.create({
         data: {
-          accountId: input.accountId,
+          walletId: input.walletId,
           userId: ctx.session.userId,
           amount: input.amount,
           type: input.type,
@@ -161,8 +161,8 @@ export const transactionRouter = router({
       const balanceChange =
         input.type === 'INCOME' ? input.amount : -input.amount;
 
-      await ctx.prisma.account.update({
-        where: { id: input.accountId },
+      await ctx.prisma.wallet.update({
+        where: { id: input.walletId },
         data: { balance: { increment: balanceChange } },
       });
 
@@ -183,7 +183,7 @@ export const transactionRouter = router({
     .mutation(async ({ ctx, input }) => {
       const transaction = await ctx.prisma.transaction.findUnique({
         where: { id: input.id },
-        include: { account: true },
+        include: { wallet: true },
       });
 
       if (!transaction) {
@@ -193,9 +193,9 @@ export const transactionRouter = router({
         });
       }
 
-      const hasAccess = await ctx.prisma.account.findFirst({
+      const hasAccess = await ctx.prisma.wallet.findFirst({
         where: {
-          id: transaction.accountId,
+          id: transaction.walletId,
           OR: [
             { userId: ctx.session.userId },
             {
@@ -223,8 +223,8 @@ export const transactionRouter = router({
           ? -Number(transaction.amount)
           : Number(transaction.amount);
 
-      await ctx.prisma.account.update({
-        where: { id: transaction.accountId },
+      await ctx.prisma.wallet.update({
+        where: { id: transaction.walletId },
         data: { balance: { increment: oldBalanceChange } },
       });
 
@@ -244,8 +244,8 @@ export const transactionRouter = router({
           ? input.amount || Number(transaction.amount)
           : -(input.amount || Number(transaction.amount));
 
-      await ctx.prisma.account.update({
-        where: { id: transaction.accountId },
+      await ctx.prisma.wallet.update({
+        where: { id: transaction.walletId },
         data: { balance: { increment: newBalanceChange } },
       });
 
@@ -266,9 +266,9 @@ export const transactionRouter = router({
         });
       }
 
-      const hasAccess = await ctx.prisma.account.findFirst({
+      const hasAccess = await ctx.prisma.wallet.findFirst({
         where: {
-          id: transaction.accountId,
+          id: transaction.walletId,
           OR: [
             { userId: ctx.session.userId },
             {
@@ -296,8 +296,8 @@ export const transactionRouter = router({
           ? -Number(transaction.amount)
           : Number(transaction.amount);
 
-      await ctx.prisma.account.update({
-        where: { id: transaction.accountId },
+      await ctx.prisma.wallet.update({
+        where: { id: transaction.walletId },
         data: { balance: { increment: balanceChange } },
       });
 

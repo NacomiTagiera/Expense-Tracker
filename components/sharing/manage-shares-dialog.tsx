@@ -1,6 +1,6 @@
 'use client';
 
-import { AccountShareStatus } from '@prisma/client';
+import { WalletShareStatus } from '@prisma/client';
 import { Loader2, Trash2, Users } from 'lucide-react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -17,8 +17,8 @@ import {
 import { trpc } from '@/lib/trpc-client';
 
 interface Props {
-  accountId: string;
-  account: {
+  walletId: string;
+  wallet: {
     shares: Array<{
       id: string;
       userId: string;
@@ -32,27 +32,27 @@ interface Props {
   };
 }
 
-export function ManageSharesDialog({ accountId, account }: Props) {
+export function ManageSharesDialog({ walletId, wallet }: Props) {
   const [open, setOpen] = useState(false);
   const utils = trpc.useUtils();
 
   const removeAccessMutation = trpc.share.removeAccess.useMutation({
     onSuccess: () => {
-      utils.account.getById.invalidate();
+      utils.wallet.getById.invalidate();
     },
   });
 
   const handleRemoveAccess = (userId: string) => {
     if (confirm("Are you sure you want to remove this user's access?")) {
-      removeAccessMutation.mutate({ accountId, userId });
+      removeAccessMutation.mutate({ walletId, userId });
     }
   };
 
-  const activeShares = account.shares.filter(
-    (share) => share.status === AccountShareStatus.ACCEPTED,
+  const activeShares = wallet.shares.filter(
+    (share) => share.status === WalletShareStatus.ACCEPTED,
   );
-  const pendingShares = account.shares.filter(
-    (share) => share.status === AccountShareStatus.PENDING,
+  const pendingShares = wallet.shares.filter(
+    (share) => share.status === WalletShareStatus.PENDING,
   );
 
   return (
@@ -67,7 +67,7 @@ export function ManageSharesDialog({ accountId, account }: Props) {
         <DialogHeader>
           <DialogTitle>Manage Shared Access</DialogTitle>
           <DialogDescription>
-            View and manage users who have access to this account
+            View and manage users who have access to this wallet
           </DialogDescription>
         </DialogHeader>
 

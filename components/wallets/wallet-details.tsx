@@ -1,10 +1,10 @@
 'use client';
 
-import { AccountShareStatus } from '@prisma/client';
+import { WalletShareStatus } from '@prisma/client';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ManageSharesDialog } from '@/components/sharing/manage-shares-dialog';
-import { ShareAccountDialog } from '@/components/sharing/share-account-dialog';
+import { ShareWalletDialog } from '@/components/sharing/share-wallet-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -15,10 +15,10 @@ import {
 } from '@/components/ui/card';
 import { trpc } from '@/lib/trpc-client';
 
-export function AccountDetails({ accountId }: { accountId: string }) {
+export function WalletDetails({ walletId }: { walletId: string }) {
   const router = useRouter();
-  const { data: account, isLoading } = trpc.account.getById.useQuery({
-    id: accountId,
+  const { data: wallet, isLoading } = trpc.wallet.getById.useQuery({
+    id: walletId,
   });
 
   if (isLoading) {
@@ -29,18 +29,18 @@ export function AccountDetails({ accountId }: { accountId: string }) {
     );
   }
 
-  if (!account) {
+  if (!wallet) {
     return (
       <div className="rounded-lg border border-dashed p-12 text-center">
-        <p className="text-muted-foreground">Account not found</p>
+        <p className="text-muted-foreground">Wallet not found</p>
       </div>
     );
   }
 
-  const isOwner = account.isOwner ?? false;
-  const userShare = account.currentUserShare;
+  const isOwner = wallet.isOwner ?? false;
+  const userShare = wallet.currentUserShare;
   const isShared =
-    !isOwner && userShare?.status === AccountShareStatus.ACCEPTED;
+    !isOwner && userShare?.status === WalletShareStatus.ACCEPTED;
 
   return (
     <div className="space-y-4">
@@ -53,7 +53,7 @@ export function AccountDetails({ accountId }: { accountId: string }) {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <CardTitle className="flex items-center gap-2">
-                {account.name}
+                {wallet.name}
                 {isShared && userShare && (
                   <span className="text-sm font-normal text-muted-foreground">
                     ({userShare.permission})
@@ -61,13 +61,13 @@ export function AccountDetails({ accountId }: { accountId: string }) {
                 )}
               </CardTitle>
               <CardDescription>
-                {account.description || 'No description'}
+                {wallet.description || 'No description'}
               </CardDescription>
             </div>
             {isOwner && (
               <div className="flex gap-2">
-                <ShareAccountDialog accountId={accountId} />
-                <ManageSharesDialog accountId={accountId} account={account} />
+                <ShareWalletDialog walletId={walletId} />
+                <ManageSharesDialog walletId={walletId} wallet={wallet} />
               </div>
             )}
           </div>
@@ -76,23 +76,23 @@ export function AccountDetails({ accountId }: { accountId: string }) {
           <div className="grid gap-4 md:grid-cols-3">
             <div>
               <p className="text-sm text-muted-foreground">Balance</p>
-              <p className="text-2xl font-bold">
+              <p className="text-2xl font-bold" data-testid="wallet-balance">
                 {new Intl.NumberFormat('en-US', {
                   style: 'currency',
-                  currency: account.currency,
-                }).format(Number(account.balance))}
+                  currency: wallet.currency,
+                }).format(Number(wallet.balance))}
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Currency</p>
-              <p className="text-xl font-semibold">{account.currency}</p>
+              <p className="text-xl font-semibold">{wallet.currency}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">
                 Total Transactions
               </p>
               <p className="text-xl font-semibold">
-                {account._count.transactions}
+                {wallet._count.transactions}
               </p>
             </div>
           </div>
@@ -101,3 +101,4 @@ export function AccountDetails({ accountId }: { accountId: string }) {
     </div>
   );
 }
+

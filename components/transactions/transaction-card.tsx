@@ -31,8 +31,8 @@ interface Props {
     categoryId: string;
     description: string | null;
     date: Date;
-    accountId: string;
-    subscription?: {
+    walletId: string;
+    recurringTransaction?: {
       id: string;
       name: string;
     } | null;
@@ -51,8 +51,8 @@ export function TransactionCard({ transaction }: Props) {
   const deleteMutation = trpc.transaction.delete.useMutation({
     onSuccess: () => {
       utils.transaction.list.invalidate();
-      utils.account.getById.invalidate();
-      utils.account.list.invalidate();
+      utils.wallet.getById.invalidate();
+      utils.wallet.list.invalidate();
     },
   });
 
@@ -88,10 +88,10 @@ export function TransactionCard({ transaction }: Props) {
                 <Badge variant={isIncome ? 'default' : 'secondary'}>
                   {transaction.type}
                 </Badge>
-                {transaction.subscription && (
+                {transaction.recurringTransaction && (
                   <Badge variant="outline" className="flex items-center gap-1">
                     <Repeat className="size-3" />
-                    {transaction.subscription.name}
+                    {transaction.recurringTransaction.name}
                   </Badge>
                 )}
               </div>

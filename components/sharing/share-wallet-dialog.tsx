@@ -1,6 +1,6 @@
 'use client';
 
-import { AccountSharePermission } from '@prisma/client';
+import { WalletSharePermission } from '@prisma/client';
 import { Loader2, UserPlus } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
@@ -25,14 +25,14 @@ import {
 import { trpc } from '@/lib/trpc-client';
 
 interface Props {
-  accountId: string;
+  walletId: string;
 }
 
-export function ShareAccountDialog({ accountId }: Props) {
+export function ShareWalletDialog({ walletId }: Props) {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
-  const [permission, setPermission] = useState<AccountSharePermission>(
-    AccountSharePermission.VIEW,
+  const [permission, setPermission] = useState<WalletSharePermission>(
+    WalletSharePermission.VIEW,
   );
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -41,10 +41,10 @@ export function ShareAccountDialog({ accountId }: Props) {
 
   const inviteMutation = trpc.share.invite.useMutation({
     onSuccess: () => {
-      utils.account.getById.invalidate();
+      utils.wallet.getById.invalidate();
       setSuccess('Invitation sent successfully!');
       setEmail('');
-      setPermission(AccountSharePermission.VIEW);
+      setPermission(WalletSharePermission.VIEW);
       setError('');
       setTimeout(() => {
         setOpen(false);
@@ -61,7 +61,7 @@ export function ShareAccountDialog({ accountId }: Props) {
     e.preventDefault();
     setError('');
     setSuccess('');
-    inviteMutation.mutate({ accountId, email, permission });
+    inviteMutation.mutate({ walletId, email, permission });
   };
 
   return (
@@ -74,9 +74,9 @@ export function ShareAccountDialog({ accountId }: Props) {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Share Account</DialogTitle>
+          <DialogTitle>Share Wallet</DialogTitle>
           <DialogDescription>
-            Invite someone to access this account
+            Invite someone to access this wallet
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -97,7 +97,7 @@ export function ShareAccountDialog({ accountId }: Props) {
             <Label htmlFor="permission">Permission Level</Label>
             <Select
               value={permission}
-              onValueChange={(value: AccountSharePermission) =>
+              onValueChange={(value: WalletSharePermission) =>
                 setPermission(value)
               }
               disabled={inviteMutation.isPending}
@@ -111,7 +111,7 @@ export function ShareAccountDialog({ accountId }: Props) {
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              {permission === AccountSharePermission.VIEW
+              {permission === WalletSharePermission.VIEW
                 ? 'Can view transactions and reports only'
                 : 'Can view and add/edit transactions'}
             </p>
@@ -140,3 +140,4 @@ export function ShareAccountDialog({ accountId }: Props) {
     </Dialog>
   );
 }
+

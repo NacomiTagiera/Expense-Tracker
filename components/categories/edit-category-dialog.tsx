@@ -108,8 +108,6 @@ export function EditCategoryDialog({
               <SelectContent>
                 <SelectItem value="INCOME">Income</SelectItem>
                 <SelectItem value="EXPENSE">Expense</SelectItem>
-                <SelectItem value="INVESTMENT">Investment</SelectItem>
-                <SelectItem value="SUBSCRIPTION">Subscription</SelectItem>
               </SelectContent>
             </Select>
           </div>

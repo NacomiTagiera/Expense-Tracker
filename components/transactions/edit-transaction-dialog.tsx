@@ -34,7 +34,7 @@ interface EditTransactionDialogProps {
     categoryId: string;
     description: string | null;
     date: Date;
-    accountId: string;
+    walletId: string;
   };
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -69,8 +69,8 @@ export function EditTransactionDialog({
   const updateMutation = trpc.transaction.update.useMutation({
     onSuccess: () => {
       utils.transaction.list.invalidate();
-      utils.account.getById.invalidate();
-      utils.account.list.invalidate();
+      utils.wallet.getById.invalidate();
+      utils.wallet.list.invalidate();
       onOpenChange(false);
       setError('');
     },
@@ -141,7 +141,7 @@ export function EditTransactionDialog({
           <div className="space-y-2">
             <Label htmlFor="edit-category">Category</Label>
             <CategorySelector
-              accountId={transaction.accountId}
+              walletId={transaction.walletId}
               id="edit-category"
               value={categoryId}
               onValueChange={setCategoryId}

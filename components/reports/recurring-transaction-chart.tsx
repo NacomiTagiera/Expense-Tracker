@@ -19,14 +19,14 @@ interface Props {
   title: string;
   description: string;
   data: Array<{
-    subscriptionId: string;
+    recurringTransactionId: string;
     name: string;
     amount: number;
     transactionCount: number;
   }>;
 }
 
-export function SubscriptionChart({ title, description, data }: Props) {
+export function RecurringTransactionChart({ title, description, data }: Props) {
   const chartConfig = {
     amount: {
       label: 'Amount',
@@ -46,7 +46,7 @@ export function SubscriptionChart({ title, description, data }: Props) {
         </CardHeader>
         <CardContent>
           <div className="flex h-[300px] items-center justify-center text-muted-foreground">
-            No subscription payments found for this period
+            No recurring transaction payments found for this period
           </div>
         </CardContent>
       </Card>
@@ -100,3 +100,4 @@ export function SubscriptionChart({ title, description, data }: Props) {
     </Card>
   );
 }
+

@@ -24,15 +24,15 @@ import { trpc } from '@/lib/trpc-client';
 import { CategoryChart } from './category-chart';
 import { MemberChart } from './member-chart';
 import { PieChart } from './pie-chart';
-import { SubscriptionChart } from './subscription-chart';
+import { RecurringTransactionChart } from './recurring-transaction-chart';
 import { SummaryCards } from './summary-cards';
 import { TrendChart } from './trend-chart';
 
 interface Props {
-  accountId: string;
+  walletId: string;
 }
 
-export function ReportsDashboard({ accountId }: Props) {
+export function ReportsDashboard({ walletId }: Props) {
   const defaultStartDate = startOfMonth(subMonths(new Date(), 1));
   const defaultEndDate = endOfMonth(new Date());
 
@@ -48,14 +48,14 @@ export function ReportsDashboard({ accountId }: Props) {
 
   const { data: summary, isLoading: summaryLoading } =
     trpc.report.summary.useQuery({
-      accountId,
+      walletId,
       startDate: new Date(startDate),
       endDate: new Date(endDate),
     });
 
   const { data: incomeByCategory, isLoading: incomeLoading } =
     trpc.report.byCategory.useQuery({
-      accountId,
+      walletId,
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       type: 'INCOME' as TransactionType,
@@ -63,7 +63,7 @@ export function ReportsDashboard({ accountId }: Props) {
 
   const { data: expenseByCategory, isLoading: expenseLoading } =
     trpc.report.byCategory.useQuery({
-      accountId,
+      walletId,
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       type: 'EXPENSE' as TransactionType,
@@ -71,21 +71,21 @@ export function ReportsDashboard({ accountId }: Props) {
 
   const { data: userData, isLoading: userLoading } =
     trpc.report.byUser.useQuery({
-      accountId,
+      walletId,
       startDate: new Date(startDate),
       endDate: new Date(endDate),
     });
 
-  const { data: subscriptionData, isLoading: subscriptionLoading } =
-    trpc.report.bySubscription.useQuery({
-      accountId,
+  const { data: recurringTransactionData, isLoading: recurringTransactionLoading } =
+    trpc.report.byRecurringTransaction.useQuery({
+      walletId,
       startDate: new Date(startDate),
       endDate: new Date(endDate),
     });
 
   const { data: trendData, isLoading: trendLoading } =
     trpc.report.trends.useQuery({
-      accountId,
+      walletId,
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       interval: trendInterval,
@@ -96,7 +96,7 @@ export function ReportsDashboard({ accountId }: Props) {
     incomeLoading ||
     expenseLoading ||
     userLoading ||
-    subscriptionLoading ||
+    recurringTransactionLoading ||
     trendLoading;
 
   const incomePieData =
@@ -190,21 +190,6 @@ export function ReportsDashboard({ accountId }: Props) {
             />
           </div>
 
-          {/* <div className="grid gap-6 md:grid-cols-2">
-            <CategoryChart
-              title="Income by Category"
-              description="Breakdown of your income sources"
-              data={incomeByCategory || []}
-              type="INCOME"
-            />
-            <CategoryChart
-              title="Expenses by Category"
-              description="Breakdown of your spending"
-              data={expenseByCategory || []}
-              type="EXPENSE"
-            />
-          </div> */}
-
           {userData && userData.length > 1 && (
             <MemberChart
               title="Spending by Member"
@@ -213,64 +198,13 @@ export function ReportsDashboard({ accountId }: Props) {
             />
           )}
 
-          {subscriptionData && subscriptionData.length > 0 && (
-            <SubscriptionChart
-              title="Subscription Spending"
+          {recurringTransactionData && recurringTransactionData.length > 0 && (
+            <RecurringTransactionChart
+              title="Recurring Transaction Spending"
               description="Total spending on recurring transactions"
-              data={subscriptionData}
+              data={recurringTransactionData}
             />
           )}
-
-          {/* {summary && Object.keys(summary.categoryBreakdown).length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Category Details</CardTitle>
-                <CardDescription>
-                  Detailed breakdown by category
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {Object.entries(summary.categoryBreakdown).map(
-                    ([category, data]) => (
-                      <div
-                        key={category}
-                        className="flex items-center justify-between border-b pb-3 last:border-0"
-                      >
-                        <div className="flex-1">
-                          <p className="font-medium">{category}</p>
-                          <div className="flex gap-4 text-sm text-muted-foreground">
-                            {data.income > 0 && (
-                              <span className="flex items-center gap-1 text-green-600">
-                                <TrendingUp className="h-3 w-3" />
-                                Income: ${data.income.toFixed(2)}
-                              </span>
-                            )}
-                            {data.expense > 0 && (
-                              <span className="flex items-center gap-1 text-red-600">
-                                <TrendingDown className="h-3 w-3" />
-                                Expense: ${data.expense.toFixed(2)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold">
-                            ${Math.abs(data.income - data.expense).toFixed(2)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {data.income > data.expense
-                              ? 'Net Income'
-                              : 'Net Expense'}
-                          </p>
-                        </div>
-                      </div>
-                    ),
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )} */}
         </>
       )}
     </div>

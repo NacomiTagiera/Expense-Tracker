@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { processDueSubscriptions } from '@/lib/process-subscriptions';
+import { processDueRecurringTransactions } from '@/lib/process-recurring-transactions';
 
 /**
- * API route for processing due subscriptions
+ * API route for processing due recurring transactions
  * This should be called by a cron job (e.g., Vercel Cron, external cron service)
  *
  * Security: Protect this endpoint with a secret token in production
@@ -17,7 +17,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const processedCount = await processDueSubscriptions();
+    const processedCount = await processDueRecurringTransactions();
 
     return NextResponse.json({
       success: true,
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error processing subscriptions:', error);
+    console.error('Error processing recurring transactions:', error);
     return NextResponse.json(
       {
         success: false,
@@ -40,3 +40,4 @@ export async function GET(request: Request) {
  * Allow POST as well for cron services that use POST
  */
 export const POST = GET;
+

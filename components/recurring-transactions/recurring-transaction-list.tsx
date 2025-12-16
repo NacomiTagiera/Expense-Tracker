@@ -3,17 +3,17 @@
 import { Loader2 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { trpc } from '@/lib/trpc-client';
-import { SubscriptionCard } from './subscription-card';
+import { RecurringTransactionCard } from './recurring-transaction-card';
 
 interface Props {
-  accountId: string;
+  walletId: string;
 }
 
-export function SubscriptionList({ accountId }: Props) {
+export function RecurringTransactionList({ walletId }: Props) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
-    trpc.subscription.list.useInfiniteQuery(
+    trpc.recurringTransaction.list.useInfiniteQuery(
       {
-        accountId,
+        walletId,
         limit: 10,
       },
       {
@@ -40,7 +40,7 @@ export function SubscriptionList({ accountId }: Props) {
     return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const subscriptions = data?.pages.flatMap((page) => page.items) ?? [];
+  const recurringTransactions = data?.pages.flatMap((page) => page.items) ?? [];
 
   if (isLoading) {
     return (
@@ -50,33 +50,33 @@ export function SubscriptionList({ accountId }: Props) {
     );
   }
 
-  if (subscriptions.length === 0) {
+  if (recurringTransactions.length === 0) {
     return (
       <div className="rounded-lg border border-dashed p-12 text-center">
         <p className="text-muted-foreground">
-          No subscriptions yet. Add your first subscription to track recurring
-          expenses.
+          No recurring transactions yet. Add your first recurring transaction to track recurring
+          income or expenses.
         </p>
       </div>
     );
   }
 
-  const activeSubscriptions = subscriptions.filter((sub) => sub.isActive);
-  const inactiveSubscriptions = subscriptions.filter((sub) => !sub.isActive);
+  const activeRecurringTransactions = recurringTransactions.filter((rt) => rt.isActive);
+  const inactiveRecurringTransactions = recurringTransactions.filter((rt) => !rt.isActive);
 
   return (
     <div className="space-y-8">
-      {activeSubscriptions.length > 0 && (
+      {activeRecurringTransactions.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Active Subscriptions</h3>
+          <h3 className="text-lg font-semibold">Active Recurring Transactions</h3>
           <div className="grid gap-4 md:grid-cols-2">
-            {activeSubscriptions.map((subscription) => (
-              <SubscriptionCard
-                key={subscription.id}
-                subscription={{
-                  ...subscription,
-                  amount: Number(subscription.amount),
-                  accountId,
+            {activeRecurringTransactions.map((recurringTransaction) => (
+              <RecurringTransactionCard
+                key={recurringTransaction.id}
+                recurringTransaction={{
+                  ...recurringTransaction,
+                  amount: Number(recurringTransaction.amount),
+                  walletId,
                 }}
               />
             ))}
@@ -84,19 +84,19 @@ export function SubscriptionList({ accountId }: Props) {
         </div>
       )}
 
-      {inactiveSubscriptions.length > 0 && (
+      {inactiveRecurringTransactions.length > 0 && (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-muted-foreground">
-            Inactive Subscriptions
+            Inactive Recurring Transactions
           </h3>
           <div className="grid gap-4 md:grid-cols-2">
-            {inactiveSubscriptions.map((subscription) => (
-              <SubscriptionCard
-                key={subscription.id}
-                subscription={{
-                  ...subscription,
-                  amount: Number(subscription.amount),
-                  accountId,
+            {inactiveRecurringTransactions.map((recurringTransaction) => (
+              <RecurringTransactionCard
+                key={recurringTransaction.id}
+                recurringTransaction={{
+                  ...recurringTransaction,
+                  amount: Number(recurringTransaction.amount),
+                  walletId,
                 }}
               />
             ))}
@@ -114,3 +114,4 @@ export function SubscriptionList({ accountId }: Props) {
     </div>
   );
 }
+

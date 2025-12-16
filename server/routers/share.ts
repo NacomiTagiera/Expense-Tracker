@@ -1,4 +1,4 @@
-import { AccountSharePermission, AccountShareStatus } from '@prisma/client';
+import { WalletSharePermission, WalletShareStatus } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { protectedProcedure, router } from '../trpc';
@@ -7,22 +7,22 @@ export const shareRouter = router({
   invite: protectedProcedure
     .input(
       z.object({
-        accountId: z.string(),
+        walletId: z.string(),
         email: z.string().email(),
         permission: z
-          .nativeEnum(AccountSharePermission)
-          .default(AccountSharePermission.VIEW),
+          .nativeEnum(WalletSharePermission)
+          .default(WalletSharePermission.VIEW),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const account = await ctx.prisma.account.findFirst({
+      const wallet = await ctx.prisma.wallet.findFirst({
         where: {
-          id: input.accountId,
+          id: input.walletId,
           userId: ctx.session.userId,
         },
       });
 
-      if (!account) {
+      if (!wallet) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Only wallet owners can invite users',
@@ -47,10 +47,10 @@ export const shareRouter = router({
         });
       }
 
-      const existingShare = await ctx.prisma.accountShare.findUnique({
+      const existingShare = await ctx.prisma.walletShare.findUnique({
         where: {
-          accountId_userId: {
-            accountId: input.accountId,
+          walletId_userId: {
+            walletId: input.walletId,
             userId: invitedUser.id,
           },
         },
@@ -59,13 +59,13 @@ export const shareRouter = router({
       if (existingShare) {
         throw new TRPCError({
           code: 'CONFLICT',
-          message: 'User already has access to this account',
+          message: 'User already has access to this wallet',
         });
       }
 
-      const share = await ctx.prisma.accountShare.create({
+      const share = await ctx.prisma.walletShare.create({
         data: {
-          accountId: input.accountId,
+          walletId: input.walletId,
           userId: invitedUser.id,
           permission: input.permission,
         },
@@ -75,13 +75,13 @@ export const shareRouter = router({
     }),
 
   listInvitations: protectedProcedure.query(async ({ ctx }) => {
-    const invitations = await ctx.prisma.accountShare.findMany({
+    const invitations = await ctx.prisma.walletShare.findMany({
       where: {
         userId: ctx.session.userId,
-        status: AccountShareStatus.PENDING,
+        status: WalletShareStatus.PENDING,
       },
       include: {
-        account: {
+        wallet: {
           include: {
             user: {
               select: {
@@ -105,11 +105,11 @@ export const shareRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const share = await ctx.prisma.accountShare.findFirst({
+      const share = await ctx.prisma.walletShare.findFirst({
         where: {
           id: input.shareId,
           userId: ctx.session.userId,
-          status: AccountShareStatus.PENDING,
+          status: WalletShareStatus.PENDING,
         },
       });
 
@@ -121,12 +121,12 @@ export const shareRouter = router({
       }
 
       if (input.accept) {
-        await ctx.prisma.accountShare.update({
+        await ctx.prisma.walletShare.update({
           where: { id: input.shareId },
-          data: { status: AccountShareStatus.ACCEPTED },
+          data: { status: WalletShareStatus.ACCEPTED },
         });
       } else {
-        await ctx.prisma.accountShare.delete({
+        await ctx.prisma.walletShare.delete({
           where: { id: input.shareId },
         });
       }
@@ -137,29 +137,29 @@ export const shareRouter = router({
   removeAccess: protectedProcedure
     .input(
       z.object({
-        accountId: z.string(),
+        walletId: z.string(),
         userId: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const account = await ctx.prisma.account.findFirst({
+      const wallet = await ctx.prisma.wallet.findFirst({
         where: {
-          id: input.accountId,
+          id: input.walletId,
           userId: ctx.session.userId,
         },
       });
 
-      if (!account) {
+      if (!wallet) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Only wallet owners can remove access',
         });
       }
 
-      await ctx.prisma.accountShare.delete({
+      await ctx.prisma.walletShare.delete({
         where: {
-          accountId_userId: {
-            accountId: input.accountId,
+          walletId_userId: {
+            walletId: input.walletId,
             userId: input.userId,
           },
         },

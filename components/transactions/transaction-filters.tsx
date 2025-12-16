@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select';
 
 interface Props {
-  accountId: string;
+  walletId: string;
   filters: {
     type?: TransactionType;
     categoryId?: string;
@@ -32,7 +32,7 @@ interface Props {
 }
 
 export function TransactionFilters({
-  accountId,
+  walletId,
   filters,
   onFiltersChange,
 }: Props) {
@@ -73,7 +73,7 @@ export function TransactionFilters({
           <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
             <CategorySelector
-              accountId={accountId}
+              walletId={walletId}
               id="category"
               type={filters.type || 'EXPENSE'}
               value={filters.categoryId || ''}

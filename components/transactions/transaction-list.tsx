@@ -8,10 +8,10 @@ import { TransactionCard } from './transaction-card';
 import { TransactionFilters } from './transaction-filters';
 
 interface Props {
-  accountId: string;
+  walletId: string;
 }
 
-export function TransactionList({ accountId }: Props) {
+export function TransactionList({ walletId }: Props) {
   const [filters, setFilters] = useState<{
     type?: TransactionType;
     categoryId?: string;
@@ -22,7 +22,7 @@ export function TransactionList({ accountId }: Props) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     trpc.transaction.list.useInfiniteQuery(
       {
-        accountId,
+        walletId,
         limit: 10,
         ...filters,
       },
@@ -55,7 +55,7 @@ export function TransactionList({ accountId }: Props) {
   return (
     <div className="space-y-6">
       <TransactionFilters
-        accountId={accountId}
+        walletId={walletId}
         filters={filters}
         onFiltersChange={setFilters}
       />
@@ -79,8 +79,8 @@ export function TransactionList({ accountId }: Props) {
                 transaction={{
                   ...transaction,
                   amount: Number(transaction.amount),
-                  accountId,
-                  subscription: transaction.subscription || null,
+                  walletId,
+                  recurringTransaction: transaction.recurringTransaction || null,
                 }}
               />
             ))}

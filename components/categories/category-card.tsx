@@ -27,8 +27,6 @@ interface Props {
 const TYPE_LABELS: Record<CategoryType, string> = {
   INCOME: 'Income',
   EXPENSE: 'Expense',
-  INVESTMENT: 'Investment',
-  SUBSCRIPTION: 'Subscription',
 };
 
 const TYPE_COLORS: Record<
@@ -44,16 +42,6 @@ const TYPE_COLORS: Record<
     bg: 'bg-red-100',
     text: 'text-red-600',
     badge: 'secondary',
-  },
-  INVESTMENT: {
-    bg: 'bg-blue-100',
-    text: 'text-blue-600',
-    badge: 'outline',
-  },
-  SUBSCRIPTION: {
-    bg: 'bg-purple-100',
-    text: 'text-purple-600',
-    badge: 'outline',
   },
 };
 

@@ -36,8 +36,8 @@ const CURRENCIES = [
   'PLN',
 ];
 
-interface EditAccountDialogProps {
-  account: {
+interface EditWalletDialogProps {
+  wallet: {
     id: string;
     name: string;
     currency: string;
@@ -47,27 +47,27 @@ interface EditAccountDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function EditAccountDialog({
-  account,
+export function EditWalletDialog({
+  wallet,
   open,
   onOpenChange,
-}: EditAccountDialogProps) {
-  const [name, setName] = useState(account.name);
-  const [currency, setCurrency] = useState(account.currency);
-  const [description, setDescription] = useState(account.description || '');
+}: EditWalletDialogProps) {
+  const [name, setName] = useState(wallet.name);
+  const [currency, setCurrency] = useState(wallet.currency);
+  const [description, setDescription] = useState(wallet.description || '');
   const [error, setError] = useState('');
 
   const utils = trpc.useUtils();
 
   useEffect(() => {
-    setName(account.name);
-    setCurrency(account.currency);
-    setDescription(account.description || '');
-  }, [account]);
+    setName(wallet.name);
+    setCurrency(wallet.currency);
+    setDescription(wallet.description || '');
+  }, [wallet]);
 
-  const updateMutation = trpc.account.update.useMutation({
+  const updateMutation = trpc.wallet.update.useMutation({
     onSuccess: () => {
-      utils.account.list.invalidate();
+      utils.wallet.list.invalidate();
       onOpenChange(false);
       setError('');
     },
@@ -80,7 +80,7 @@ export function EditAccountDialog({
     e.preventDefault();
     setError('');
     updateMutation.mutate({
-      id: account.id,
+      id: wallet.id,
       name,
       currency,
       description: description || undefined,
@@ -96,7 +96,7 @@ export function EditAccountDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="edit-name">wallet Name</Label>
+            <Label htmlFor="edit-name">Wallet Name</Label>
             <Input
               id="edit-name"
               value={name}
@@ -154,3 +154,4 @@ export function EditAccountDialog({
     </Dialog>
   );
 }
+

@@ -1,6 +1,6 @@
 'use client';
 
-import type { SubscriptionFrequency, TransactionType } from '@prisma/client';
+import type { RecurringFrequency, TransactionType } from '@prisma/client';
 import { Loader2 } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
@@ -27,7 +27,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { trpc } from '@/lib/trpc-client';
 
 interface Props {
-  subscription: {
+  recurringTransaction: {
     id: string;
     name: string;
     amount: number;
@@ -39,33 +39,33 @@ interface Props {
     startDate: Date;
     endDate: Date | null;
     isActive: boolean;
-    accountId: string;
+    walletId: string;
   };
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function EditSubscriptionDialog({
-  subscription,
+export function EditRecurringTransactionDialog({
+  recurringTransaction,
   open,
   onOpenChange,
 }: Props) {
-  const [name, setName] = useState(subscription.name);
-  const [amount, setAmount] = useState(subscription.amount.toString());
-  const [frequency, setFrequency] = useState<SubscriptionFrequency>(
-    subscription.frequency as SubscriptionFrequency,
+  const [name, setName] = useState(recurringTransaction.name);
+  const [amount, setAmount] = useState(recurringTransaction.amount.toString());
+  const [frequency, setFrequency] = useState<RecurringFrequency>(
+    recurringTransaction.frequency.toUpperCase() as RecurringFrequency,
   );
   const [transactionType, setTransactionType] = useState<TransactionType>(
-    subscription.transactionType,
+    recurringTransaction.transactionType,
   );
-  const [categoryId, setCategoryId] = useState(subscription.categoryId);
+  const [categoryId, setCategoryId] = useState(recurringTransaction.categoryId);
   const [description, setDescription] = useState(
-    subscription.description || '',
+    recurringTransaction.description || '',
   );
-  const [isActive, setIsActive] = useState(subscription.isActive);
+  const [isActive, setIsActive] = useState(recurringTransaction.isActive);
   const [endDate, setEndDate] = useState(
-    subscription.endDate
-      ? new Date(subscription.endDate).toISOString().split('T')[0]
+    recurringTransaction.endDate
+      ? new Date(recurringTransaction.endDate).toISOString().split('T')[0]
       : '',
   );
   const [error, setError] = useState('');
@@ -73,23 +73,23 @@ export function EditSubscriptionDialog({
   const utils = trpc.useUtils();
 
   useEffect(() => {
-    setName(subscription.name);
-    setAmount(subscription.amount.toString());
-    setFrequency(subscription.frequency as SubscriptionFrequency);
-    setTransactionType(subscription.transactionType);
-    setCategoryId(subscription.categoryId);
-    setDescription(subscription.description || '');
-    setIsActive(subscription.isActive);
+    setName(recurringTransaction.name);
+    setAmount(recurringTransaction.amount.toString());
+    setFrequency(recurringTransaction.frequency.toUpperCase() as RecurringFrequency);
+    setTransactionType(recurringTransaction.transactionType);
+    setCategoryId(recurringTransaction.categoryId);
+    setDescription(recurringTransaction.description || '');
+    setIsActive(recurringTransaction.isActive);
     setEndDate(
-      subscription.endDate
-        ? new Date(subscription.endDate).toISOString().split('T')[0]
+      recurringTransaction.endDate
+        ? new Date(recurringTransaction.endDate).toISOString().split('T')[0]
         : '',
     );
-  }, [subscription]);
+  }, [recurringTransaction]);
 
-  const updateMutation = trpc.subscription.update.useMutation({
+  const updateMutation = trpc.recurringTransaction.update.useMutation({
     onSuccess: () => {
-      utils.subscription.list.invalidate();
+      utils.recurringTransaction.list.invalidate();
       onOpenChange(false);
       setError('');
     },
@@ -109,7 +109,7 @@ export function EditSubscriptionDialog({
     }
 
     updateMutation.mutate({
-      id: subscription.id,
+      id: recurringTransaction.id,
       name,
       amount: amountNum,
       frequency,
@@ -178,7 +178,7 @@ export function EditSubscriptionDialog({
               <Label htmlFor="edit-frequency">Frequency</Label>
               <Select
                 value={frequency}
-                onValueChange={(value: SubscriptionFrequency) =>
+                onValueChange={(value: RecurringFrequency) =>
                   setFrequency(value)
                 }
                 disabled={updateMutation.isPending}
@@ -199,7 +199,7 @@ export function EditSubscriptionDialog({
           <div className="space-y-2">
             <Label htmlFor="edit-category">Category</Label>
             <CategorySelector
-              accountId={subscription.accountId}
+              walletId={recurringTransaction.walletId}
               id="edit-category"
               value={categoryId}
               onValueChange={setCategoryId}
@@ -263,3 +263,4 @@ export function EditSubscriptionDialog({
     </Dialog>
   );
 }
+

@@ -37,7 +37,7 @@ const CURRENCIES = [
   'PLN',
 ];
 
-export function CreateAccountDialog() {
+export function CreateWalletDialog() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [currency, setCurrency] = useState('USD');
@@ -46,9 +46,9 @@ export function CreateAccountDialog() {
 
   const utils = trpc.useUtils();
 
-  const createMutation = trpc.account.create.useMutation({
+  const createMutation = trpc.wallet.create.useMutation({
     onSuccess: () => {
-      utils.account.list.invalidate();
+      utils.wallet.list.invalidate();
       setOpen(false);
       setName('');
       setCurrency('USD');
@@ -147,3 +147,4 @@ export function CreateAccountDialog() {
     </Dialog>
   );
 }
+

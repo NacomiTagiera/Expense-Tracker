@@ -1,6 +1,6 @@
 'use client';
 
-import type { SubscriptionFrequency, TransactionType } from '@prisma/client';
+import type { RecurringFrequency, TransactionType } from '@prisma/client';
 import { Loader2, Plus } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
@@ -26,11 +26,11 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { trpc } from '@/lib/trpc-client';
 
-export function CreateSubscriptionDialog({ accountId }: { accountId: string }) {
+export function CreateRecurringTransactionDialog({ walletId }: { walletId: string }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
-  const [frequency, setFrequency] = useState<SubscriptionFrequency>('MONTHLY');
+  const [frequency, setFrequency] = useState<RecurringFrequency>('MONTHLY');
   const [transactionType, setTransactionType] =
     useState<TransactionType>('EXPENSE');
   const [categoryId, setCategoryId] = useState('');
@@ -42,9 +42,9 @@ export function CreateSubscriptionDialog({ accountId }: { accountId: string }) {
 
   const utils = trpc.useUtils();
 
-  const createMutation = trpc.subscription.create.useMutation({
+  const createMutation = trpc.recurringTransaction.create.useMutation({
     onSuccess: () => {
-      utils.subscription.list.invalidate();
+      utils.recurringTransaction.list.invalidate();
       setOpen(false);
       setName('');
       setAmount('');
@@ -71,7 +71,7 @@ export function CreateSubscriptionDialog({ accountId }: { accountId: string }) {
     }
 
     createMutation.mutate({
-      accountId,
+      walletId,
       name,
       amount: amountNum,
       frequency,
@@ -147,7 +147,7 @@ export function CreateSubscriptionDialog({ accountId }: { accountId: string }) {
               <Label htmlFor="frequency">Frequency</Label>
               <Select
                 value={frequency}
-                onValueChange={(value: SubscriptionFrequency) =>
+                onValueChange={(value: RecurringFrequency) =>
                   setFrequency(value)
                 }
                 disabled={createMutation.isPending}
@@ -168,7 +168,7 @@ export function CreateSubscriptionDialog({ accountId }: { accountId: string }) {
           <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
             <CategorySelector
-              accountId={accountId}
+              walletId={walletId}
               id="category"
               value={categoryId}
               onValueChange={setCategoryId}
@@ -222,3 +222,4 @@ export function CreateSubscriptionDialog({ accountId }: { accountId: string }) {
     </Dialog>
   );
 }
+

@@ -5,10 +5,10 @@ A comprehensive expense tracking application built with Next.js 15, React 19, Ty
 ## Features
 
 - User authentication with JWT
-- Multi-account support (up to 3 accounts per user)
+- Multi-wallet support (up to 3 wallets per user)
 - Transaction management (income/expense)
-- Recurring subscriptions with automatic payment processing
-- Account sharing with permissions
+- Recurring transactions with automatic payment processing
+- Wallet sharing with permissions
 - Financial reports and analytics
 - Clean Architecture with tRPC
 
@@ -93,7 +93,7 @@ npm run test:coverage
 ### E2E Tests (Playwright)
 - Authentication flow testing
 - Dashboard navigation testing
-- Account management testing
+- Wallet management testing
 
 Run E2E tests:
 \`\`\`bash
@@ -132,12 +132,12 @@ The project uses GitHub Actions for continuous integration and deployment:
 │   ├── (dashboard)/     # Dashboard pages
 │   └── api/             # API routes
 ├── components/          # React components
-│   ├── accounts/        # Account management
+│   ├── wallets/         # Wallet management
 │   ├── auth/            # Authentication
 │   ├── dashboard/       # Dashboard layout
 │   ├── reports/         # Financial reports
-│   ├── sharing/         # Account sharing
-│   ├── subscriptions/   # Subscription management
+│   ├── sharing/         # Wallet sharing
+│   ├── recurring-transactions/  # Recurring transaction management
 │   ├── transactions/    # Transaction management
 │   └── ui/              # UI components
 ├── lib/                 # Utility functions
@@ -149,36 +149,36 @@ The project uses GitHub Actions for continuous integration and deployment:
 └── public/              # Static assets
 \`\`\`
 
-## Subscription Auto-Payment
+## Recurring Transaction Auto-Payment
 
-The application includes an automated subscription payment system that processes recurring subscriptions and automatically:
+The application includes an automated recurring transaction payment system that processes recurring transactions and automatically:
 
-- Creates expense transactions when subscriptions are due
-- Updates account balances by subtracting the subscription amount
-- Schedules the next payment date based on subscription frequency (daily, weekly, monthly, yearly)
+- Creates transactions when recurring payments are due
+- Updates wallet balances by adding/subtracting the amount based on transaction type
+- Schedules the next payment date based on frequency (daily, weekly, monthly, yearly)
 
 ### How It Works
 
-1. When a subscription is created or updated, the system calculates the `nextRunAt` date based on the frequency
-2. A cron job runs hourly (configured in `vercel.json`) to check for due subscriptions
-3. The cron endpoint (`/api/cron/process-subscriptions`) processes all subscriptions where `nextRunAt <= now`
-4. For each due subscription, it:
-   - Creates an EXPENSE transaction linked to the subscription
-   - Updates the account balance (decrements by subscription amount)
+1. When a recurring transaction is created or updated, the system calculates the `nextRunAt` date based on the frequency
+2. A cron job runs daily (configured in `vercel.json`) to check for due recurring transactions
+3. The cron endpoint (`/api/cron/process-recurring-transactions`) processes all recurring transactions where `nextRunAt <= now`
+4. For each due recurring transaction, it:
+   - Creates a transaction linked to the recurring transaction
+   - Updates the wallet balance (increments for INCOME, decrements for EXPENSE)
    - Updates `lastRunAt` and calculates the next `nextRunAt` date
-   - Automatically deactivates subscriptions that have passed their `endDate`
+   - Automatically deactivates recurring transactions that have passed their `endDate`
 
 ### Setting Up Cron Jobs
 
 #### For Vercel Deployments
 
-The `vercel.json` file is already configured with a cron schedule that runs hourly. Vercel will automatically trigger the endpoint.
+The `vercel.json` file is already configured with a cron schedule that runs daily. Vercel will automatically trigger the endpoint.
 
 #### For Other Platforms
 
 You can use any cron service (e.g., GitHub Actions, external cron services) to call:
 \`\`\`
-GET/POST https://your-domain.com/api/cron/process-subscriptions
+GET/POST https://your-domain.com/api/cron/process-recurring-transactions
 \`\`\`
 
 If you set the `CRON_SECRET` environment variable, include it in the Authorization header:
@@ -188,9 +188,7 @@ Authorization: Bearer your-cron-secret
 
 ### Manual Testing
 
-You can manually trigger subscription processing by calling the endpoint:
+You can manually trigger recurring transaction processing by calling the endpoint:
 \`\`\`bash
-curl -X GET https://your-domain.com/api/cron/process-subscriptions
+curl -X GET https://your-domain.com/api/cron/process-recurring-transactions
 \`\`\`
-
-

@@ -21,10 +21,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { trpc } from '@/lib/trpc-client';
-import { EditSubscriptionDialog } from './edit-subscription-dialog';
+import { EditRecurringTransactionDialog } from './edit-recurring-transaction-dialog';
 
 interface Props {
-  subscription: {
+  recurringTransaction: {
     id: string;
     name: string;
     amount: number;
@@ -36,23 +36,23 @@ interface Props {
     startDate: Date;
     endDate: Date | null;
     isActive: boolean;
-    accountId: string;
+    walletId: string;
   };
 }
 
-export function SubscriptionCard({ subscription }: Props) {
+export function RecurringTransactionCard({ recurringTransaction }: Props) {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const utils = trpc.useUtils();
 
-  const deleteMutation = trpc.subscription.delete.useMutation({
+  const deleteMutation = trpc.recurringTransaction.delete.useMutation({
     onSuccess: () => {
-      utils.subscription.list.invalidate();
+      utils.recurringTransaction.list.invalidate();
     },
   });
 
   const handleDelete = () => {
-    if (confirm('Are you sure you want to delete this subscription?')) {
-      deleteMutation.mutate({ id: subscription.id });
+    if (confirm('Are you sure you want to delete this recurring transaction?')) {
+      deleteMutation.mutate({ id: recurringTransaction.id });
     }
   };
 
@@ -65,16 +65,16 @@ export function SubscriptionCard({ subscription }: Props) {
 
   return (
     <>
-      <Card className={subscription.isActive ? '' : 'opacity-60'}>
+      <Card className={recurringTransaction.isActive ? '' : 'opacity-60'}>
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <CardTitle className="flex items-center gap-2">
-                {subscription.name}
+                {recurringTransaction.name}
                 <Badge
-                  variant={subscription.isActive ? 'default' : 'secondary'}
+                  variant={recurringTransaction.isActive ? 'default' : 'secondary'}
                 >
-                  {subscription.isActive ? 'Active' : 'Inactive'}
+                  {recurringTransaction.isActive ? 'Active' : 'Inactive'}
                 </Badge>
               </CardTitle>
             </div>
@@ -103,46 +103,47 @@ export function SubscriptionCard({ subscription }: Props) {
         <CardContent className="space-y-4">
           <div className="flex items-center gap-2 text-2xl font-bold">
             <DollarSign className="size-5 text-muted-foreground" />
-            {subscription.amount.toFixed(2)}
+            {recurringTransaction.amount.toFixed(2)}
           </div>
 
           <div className="space-y-2 text-sm">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Repeat className="size-4" />
-              <span>{frequencyLabels[subscription.frequency]}</span>
+              <span>{frequencyLabels[recurringTransaction.frequency]}</span>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
               <Calendar className="size-4" />
               <span>
-                Started {format(new Date(subscription.startDate), 'PP')}
+                Started {format(new Date(recurringTransaction.startDate), 'PP')}
               </span>
             </div>
-            {subscription.endDate && (
+            {recurringTransaction.endDate && (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Calendar className="size-4" />
-                <span>Ends {format(new Date(subscription.endDate), 'PP')}</span>
+                <span>Ends {format(new Date(recurringTransaction.endDate), 'PP')}</span>
               </div>
             )}
           </div>
 
           <div className="space-y-1">
             <p className="text-sm font-medium">Category</p>
-            <Badge variant="outline">{subscription.category}</Badge>
+            <Badge variant="outline">{recurringTransaction.category}</Badge>
           </div>
 
-          {subscription.description && (
+          {recurringTransaction.description && (
             <p className="text-sm text-muted-foreground">
-              {subscription.description}
+              {recurringTransaction.description}
             </p>
           )}
         </CardContent>
       </Card>
 
-      <EditSubscriptionDialog
-        subscription={subscription}
+      <EditRecurringTransactionDialog
+        recurringTransaction={recurringTransaction}
         open={showEditDialog}
         onOpenChange={setShowEditDialog}
       />
     </>
   );
 }
+

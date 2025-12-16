@@ -1,5 +1,5 @@
 /** biome-ignore-all lint/style/noNonNullAssertion: <this is a valid use case> */
-import { AccountShareStatus, TransactionType } from '@prisma/client';
+import { WalletShareStatus, TransactionType } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { protectedProcedure, router } from '../trpc';
@@ -8,22 +8,22 @@ export const reportRouter = router({
   summary: protectedProcedure
     .input(
       z.object({
-        accountId: z.string(),
+        walletId: z.string(),
         startDate: z.date(),
         endDate: z.date(),
       }),
     )
     .query(async ({ ctx, input }) => {
-      const hasAccess = await ctx.prisma.account.findFirst({
+      const hasAccess = await ctx.prisma.wallet.findFirst({
         where: {
-          id: input.accountId,
+          id: input.walletId,
           OR: [
             { userId: ctx.session.userId },
             {
               shares: {
                 some: {
                   userId: ctx.session.userId,
-                  status: AccountShareStatus.ACCEPTED,
+                  status: WalletShareStatus.ACCEPTED,
                 },
               },
             },
@@ -40,7 +40,7 @@ export const reportRouter = router({
 
       const transactions = await ctx.prisma.transaction.findMany({
         where: {
-          accountId: input.accountId,
+          walletId: input.walletId,
           date: {
             gte: input.startDate,
             lte: input.endDate,
@@ -87,23 +87,23 @@ export const reportRouter = router({
   byCategory: protectedProcedure
     .input(
       z.object({
-        accountId: z.string(),
+        walletId: z.string(),
         startDate: z.date(),
         endDate: z.date(),
         type: z.nativeEnum(TransactionType).optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
-      const hasAccess = await ctx.prisma.account.findFirst({
+      const hasAccess = await ctx.prisma.wallet.findFirst({
         where: {
-          id: input.accountId,
+          id: input.walletId,
           OR: [
             { userId: ctx.session.userId },
             {
               shares: {
                 some: {
                   userId: ctx.session.userId,
-                  status: AccountShareStatus.ACCEPTED,
+                  status: WalletShareStatus.ACCEPTED,
                 },
               },
             },
@@ -120,7 +120,7 @@ export const reportRouter = router({
 
       const transactions = await ctx.prisma.transaction.findMany({
         where: {
-          accountId: input.accountId,
+          walletId: input.walletId,
           date: {
             gte: input.startDate,
             lte: input.endDate,
@@ -152,22 +152,22 @@ export const reportRouter = router({
   byUser: protectedProcedure
     .input(
       z.object({
-        accountId: z.string(),
+        walletId: z.string(),
         startDate: z.date(),
         endDate: z.date(),
       }),
     )
     .query(async ({ ctx, input }) => {
-      const hasAccess = await ctx.prisma.account.findFirst({
+      const hasAccess = await ctx.prisma.wallet.findFirst({
         where: {
-          id: input.accountId,
+          id: input.walletId,
           OR: [
             { userId: ctx.session.userId },
             {
               shares: {
                 some: {
                   userId: ctx.session.userId,
-                  status: AccountShareStatus.ACCEPTED,
+                  status: WalletShareStatus.ACCEPTED,
                 },
               },
             },
@@ -204,7 +204,7 @@ export const reportRouter = router({
 
       const transactions = await ctx.prisma.transaction.findMany({
         where: {
-          accountId: input.accountId,
+          walletId: input.walletId,
           date: {
             gte: input.startDate,
             lte: input.endDate,
@@ -224,11 +224,11 @@ export const reportRouter = router({
       const userData = transactions.reduce(
         (acc, t) => {
           const userName = t.user.name || t.user.email.split('@')[0];
-          const userId = t.user.id;
+          const oderedUserId = t.user.id;
 
-          if (!acc[userId]) {
-            acc[userId] = {
-              userId,
+          if (!acc[oderedUserId]) {
+            acc[oderedUserId] = {
+              oderedUserId,
               name: userName,
               email: t.user.email,
               income: 0,
@@ -237,9 +237,9 @@ export const reportRouter = router({
           }
 
           if (t.type === TransactionType.INCOME) {
-            acc[userId].income += Number(t.amount);
+            acc[oderedUserId].income += Number(t.amount);
           } else {
-            acc[userId].expense += Number(t.amount);
+            acc[oderedUserId].expense += Number(t.amount);
           }
 
           return acc;
@@ -247,7 +247,7 @@ export const reportRouter = router({
         {} as Record<
           string,
           {
-            userId: string;
+            oderedUserId: string;
             name: string;
             email: string;
             income: number;
@@ -264,25 +264,25 @@ export const reportRouter = router({
         .sort((a, b) => b.total - a.total);
     }),
 
-  bySubscription: protectedProcedure
+  byRecurringTransaction: protectedProcedure
     .input(
       z.object({
-        accountId: z.string(),
+        walletId: z.string(),
         startDate: z.date(),
         endDate: z.date(),
       }),
     )
     .query(async ({ ctx, input }) => {
-      const hasAccess = await ctx.prisma.account.findFirst({
+      const hasAccess = await ctx.prisma.wallet.findFirst({
         where: {
-          id: input.accountId,
+          id: input.walletId,
           OR: [
             { userId: ctx.session.userId },
             {
               shares: {
                 some: {
                   userId: ctx.session.userId,
-                  status: AccountShareStatus.ACCEPTED,
+                  status: WalletShareStatus.ACCEPTED,
                 },
               },
             },
@@ -299,17 +299,17 @@ export const reportRouter = router({
 
       const transactions = await ctx.prisma.transaction.findMany({
         where: {
-          accountId: input.accountId,
+          walletId: input.walletId,
           date: {
             gte: input.startDate,
             lte: input.endDate,
           },
-          subscriptionId: {
+          recurringTransactionId: {
             not: null,
           },
         },
         include: {
-          subscription: {
+          recurringTransaction: {
             select: {
               id: true,
               name: true,
@@ -318,31 +318,31 @@ export const reportRouter = router({
         },
       });
 
-      const subscriptionData = transactions.reduce(
+      const recurringTransactionData = transactions.reduce(
         (acc, t) => {
-          if (!t.subscription) return acc;
+          if (!t.recurringTransaction) return acc;
 
-          const subscriptionId = t.subscription.id;
-          const subscriptionName = t.subscription.name;
+          const recurringTransactionId = t.recurringTransaction.id;
+          const recurringTransactionName = t.recurringTransaction.name;
 
-          if (!acc[subscriptionId]) {
-            acc[subscriptionId] = {
-              subscriptionId,
-              name: subscriptionName,
+          if (!acc[recurringTransactionId]) {
+            acc[recurringTransactionId] = {
+              recurringTransactionId,
+              name: recurringTransactionName,
               amount: 0,
               transactionCount: 0,
             };
           }
 
-          acc[subscriptionId].amount += Number(t.amount);
-          acc[subscriptionId].transactionCount += 1;
+          acc[recurringTransactionId].amount += Number(t.amount);
+          acc[recurringTransactionId].transactionCount += 1;
 
           return acc;
         },
         {} as Record<
           string,
           {
-            subscriptionId: string;
+            recurringTransactionId: string;
             name: string;
             amount: number;
             transactionCount: number;
@@ -350,7 +350,7 @@ export const reportRouter = router({
         >,
       );
 
-      return Object.values(subscriptionData).sort(
+      return Object.values(recurringTransactionData).sort(
         (a, b) => b.amount - a.amount,
       );
     }),
@@ -358,23 +358,23 @@ export const reportRouter = router({
   trends: protectedProcedure
     .input(
       z.object({
-        accountId: z.string(),
+        walletId: z.string(),
         startDate: z.date(),
         endDate: z.date(),
         interval: z.enum(['daily', 'weekly', 'monthly']).default('daily'),
       }),
     )
     .query(async ({ ctx, input }) => {
-      const hasAccess = await ctx.prisma.account.findFirst({
+      const hasAccess = await ctx.prisma.wallet.findFirst({
         where: {
-          id: input.accountId,
+          id: input.walletId,
           OR: [
             { userId: ctx.session.userId },
             {
               shares: {
                 some: {
                   userId: ctx.session.userId,
-                  status: AccountShareStatus.ACCEPTED,
+                  status: WalletShareStatus.ACCEPTED,
                 },
               },
             },
@@ -391,7 +391,7 @@ export const reportRouter = router({
 
       const transactions = await ctx.prisma.transaction.findMany({
         where: {
-          accountId: input.accountId,
+          walletId: input.walletId,
           date: {
             gte: input.startDate,
             lte: input.endDate,

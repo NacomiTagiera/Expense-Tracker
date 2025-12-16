@@ -17,14 +17,14 @@ import { CategoryCard } from './category-card';
 type CategoryType = 'INCOME' | 'EXPENSE'
 
 interface Props {
-  accountId: string;
+  walletId: string;
 }
 
-export function CategoryList({ accountId }: Props) {
+export function CategoryList({ walletId }: Props) {
   const [typeFilter, setTypeFilter] = useState<CategoryType | 'ALL'>('ALL');
 
   const { data: categories, isLoading } = trpc.category.list.useQuery({
-    accountId,
+    walletId,
     ...(typeFilter !== 'ALL' && { type: typeFilter as CategoryType }),
   });
 

@@ -1,4 +1,4 @@
-import type { SubscriptionFrequency } from '@prisma/client';
+import type { RecurringFrequency } from '@prisma/client';
 import {
   addDays,
   addMonths,
@@ -9,10 +9,10 @@ import {
 } from 'date-fns';
 
 /**
- * Calculates the next run date for a subscription based on its frequency
+ * Calculates the next run date for a recurring transaction based on its frequency
  */
 export function calculateNextRunAt(
-  frequency: SubscriptionFrequency,
+  frequency: RecurringFrequency,
   startDate: Date,
   lastRunAt: Date | null = null,
   cycleDayOfMonth?: number | null,
@@ -104,3 +104,4 @@ export function calculateNextRunAt(
 
   return nextDate;
 }
+

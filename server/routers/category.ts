@@ -1,4 +1,4 @@
-import { AccountShareStatus, CategoryType } from '@prisma/client';
+import { WalletShareStatus, CategoryType } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { protectedProcedure, router } from '../trpc';
@@ -7,21 +7,21 @@ export const categoryRouter = router({
   list: protectedProcedure
     .input(
       z.object({
-        accountId: z.string(),
+        walletId: z.string(),
         type: z.nativeEnum(CategoryType).optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
-      const hasAccess = await ctx.prisma.account.findFirst({
+      const hasAccess = await ctx.prisma.wallet.findFirst({
         where: {
-          id: input.accountId,
+          id: input.walletId,
           OR: [
             { userId: ctx.session.userId },
             {
               shares: {
                 some: {
                   userId: ctx.session.userId,
-                  status: AccountShareStatus.ACCEPTED,
+                  status: WalletShareStatus.ACCEPTED,
                 },
               },
             },
@@ -38,7 +38,7 @@ export const categoryRouter = router({
 
       const categories = await ctx.prisma.category.findMany({
         where: {
-          accountId: input.accountId,
+          walletId: input.walletId,
           ...(input.type && { type: input.type }),
         },
         orderBy: { name: 'asc' },
@@ -50,22 +50,22 @@ export const categoryRouter = router({
   create: protectedProcedure
     .input(
       z.object({
-        accountId: z.string(),
+        walletId: z.string(),
         name: z.string().min(1),
-        type: z.enum(CategoryType),
+        type: z.nativeEnum(CategoryType),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const hasAccess = await ctx.prisma.account.findFirst({
+      const hasAccess = await ctx.prisma.wallet.findFirst({
         where: {
-          id: input.accountId,
+          id: input.walletId,
           OR: [
             { userId: ctx.session.userId },
             {
               shares: {
                 some: {
                   userId: ctx.session.userId,
-                  status: AccountShareStatus.ACCEPTED,
+                  status: WalletShareStatus.ACCEPTED,
                   permission: 'EDIT',
                 },
               },
@@ -83,8 +83,8 @@ export const categoryRouter = router({
 
       const existingCategory = await ctx.prisma.category.findUnique({
         where: {
-          accountId_name_type: {
-            accountId: input.accountId,
+          walletId_name_type: {
+            walletId: input.walletId,
             name: input.name,
             type: input.type,
           },
@@ -100,7 +100,7 @@ export const categoryRouter = router({
 
       const category = await ctx.prisma.category.create({
         data: {
-          accountId: input.accountId,
+          walletId: input.walletId,
           name: input.name,
           type: input.type,
         },
@@ -114,14 +114,14 @@ export const categoryRouter = router({
       z.object({
         id: z.string(),
         name: z.string().min(1),
-        type: z.enum(CategoryType),
+        type: z.nativeEnum(CategoryType),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const category = await ctx.prisma.category.findUnique({
         where: { id: input.id },
         include: {
-          account: true,
+          wallet: true,
         },
       });
 
@@ -132,16 +132,16 @@ export const categoryRouter = router({
         });
       }
 
-      const hasAccess = await ctx.prisma.account.findFirst({
+      const hasAccess = await ctx.prisma.wallet.findFirst({
         where: {
-          id: category.accountId,
+          id: category.walletId,
           OR: [
             { userId: ctx.session.userId },
             {
               shares: {
                 some: {
                   userId: ctx.session.userId,
-                  status: AccountShareStatus.ACCEPTED,
+                  status: WalletShareStatus.ACCEPTED,
                   permission: 'EDIT',
                 },
               },
@@ -159,8 +159,8 @@ export const categoryRouter = router({
 
       const existingCategory = await ctx.prisma.category.findUnique({
         where: {
-          accountId_name_type: {
-            accountId: category.accountId,
+          walletId_name_type: {
+            walletId: category.walletId,
             name: input.name,
             type: input.type,
           },
@@ -194,7 +194,7 @@ export const categoryRouter = router({
           _count: {
             select: {
               transactions: true,
-              subscriptions: true,
+              recurringTransactions: true,
             },
           },
         },
@@ -207,16 +207,16 @@ export const categoryRouter = router({
         });
       }
 
-      const hasAccess = await ctx.prisma.account.findFirst({
+      const hasAccess = await ctx.prisma.wallet.findFirst({
         where: {
-          id: category.accountId,
+          id: category.walletId,
           OR: [
             { userId: ctx.session.userId },
             {
               shares: {
                 some: {
                   userId: ctx.session.userId,
-                  status: AccountShareStatus.ACCEPTED,
+                  status: WalletShareStatus.ACCEPTED,
                   permission: 'EDIT',
                 },
               },
@@ -234,12 +234,12 @@ export const categoryRouter = router({
 
       if (
         category._count.transactions > 0 ||
-        category._count.subscriptions > 0
+        category._count.recurringTransactions > 0
       ) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message:
-            'Cannot delete category with existing transactions or subscriptions',
+            'Cannot delete category with existing transactions or recurring transactions',
         });
       }
 

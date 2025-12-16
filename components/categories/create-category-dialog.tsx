@@ -25,10 +25,10 @@ import {
 import { trpc } from '@/lib/trpc-client';
 
 interface Props {
-  accountId: string;
+  walletId: string;
 }
 
-export function CreateCategoryDialog({ accountId }: Props) {
+export function CreateCategoryDialog({ walletId }: Props) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [type, setType] = useState<CategoryType>('EXPENSE');
@@ -38,7 +38,7 @@ export function CreateCategoryDialog({ accountId }: Props) {
 
   const createMutation = trpc.category.create.useMutation({
     onSuccess: () => {
-      utils.category.list.invalidate({ accountId });
+      utils.category.list.invalidate({ walletId });
       setOpen(false);
       setName('');
       setType('EXPENSE');
@@ -59,7 +59,7 @@ export function CreateCategoryDialog({ accountId }: Props) {
     }
 
     createMutation.mutate({
-      accountId,
+      walletId,
       name: name.trim(),
       type,
     });
@@ -106,8 +106,6 @@ export function CreateCategoryDialog({ accountId }: Props) {
               <SelectContent>
                 <SelectItem value="INCOME">Income</SelectItem>
                 <SelectItem value="EXPENSE">Expense</SelectItem>
-                <SelectItem value="INVESTMENT">Investment</SelectItem>
-                <SelectItem value="SUBSCRIPTION">Subscription</SelectItem>
               </SelectContent>
             </Select>
           </div>

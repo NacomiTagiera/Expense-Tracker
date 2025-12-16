@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
-import { AccountList } from '@/components/accounts/account-list';
-import { CreateAccountDialog } from '@/components/accounts/create-account-dialog';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
+import { CreateWalletDialog } from '@/components/wallets/create-wallet-dialog';
+import { WalletList } from '@/components/wallets/wallet-list';
 import { getSession } from '@/lib/auth';
 
 export default async function DashboardPage() {
@@ -22,9 +22,9 @@ export default async function DashboardPage() {
               Manage your financial wallets
             </p>
           </div>
-          <CreateAccountDialog />
+          <CreateWalletDialog />
         </div>
-        <AccountList />
+        <WalletList />
       </main>
     </div>
   );

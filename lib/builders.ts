@@ -1,9 +1,9 @@
 import {
-  AccountSharePermission,
-  AccountShareStatus,
+  WalletSharePermission,
+  WalletShareStatus,
   type CategoryType,
   type PrismaClient,
-  type SubscriptionFrequency,
+  type RecurringFrequency,
   type TransactionType,
 } from '@prisma/client';
 import { hash } from 'bcryptjs';
@@ -14,7 +14,7 @@ type UserData = {
   password?: string;
 };
 
-type AccountData = {
+type WalletData = {
   name: string;
   currency?: string;
   balance?: number;
@@ -25,7 +25,7 @@ type AccountData = {
 type CategoryData = {
   name: string;
   type: CategoryType;
-  accountId: string;
+  walletId: string;
 };
 
 type TransactionData = {
@@ -33,16 +33,16 @@ type TransactionData = {
   type: TransactionType;
   description?: string;
   date?: Date;
-  accountId: string;
+  walletId: string;
   userId: string;
   categoryId: string;
-  subscriptionId?: string;
+  recurringTransactionId?: string;
 };
 
-type SubscriptionData = {
+type RecurringTransactionData = {
   name: string;
   amount: number;
-  frequency: SubscriptionFrequency;
+  frequency: RecurringFrequency;
   transactionType: TransactionType;
   description?: string;
   startDate?: Date;
@@ -50,16 +50,16 @@ type SubscriptionData = {
   isActive?: boolean;
   cycleDayOfMonth?: number;
   cycleDayOfWeek?: number;
-  accountId: string;
+  walletId: string;
   userId: string;
   categoryId: string;
 };
 
-type AccountShareData = {
-  accountId: string;
+type WalletShareData = {
+  walletId: string;
   userId: string;
-  permission?: AccountSharePermission;
-  status?: AccountShareStatus;
+  permission?: WalletSharePermission;
+  status?: WalletShareStatus;
 };
 
 export async function userBuilder(prisma: PrismaClient, data: UserData) {
@@ -76,8 +76,8 @@ export async function userBuilder(prisma: PrismaClient, data: UserData) {
   });
 }
 
-export async function accountBuilder(prisma: PrismaClient, data: AccountData) {
-  return prisma.account.create({
+export async function walletBuilder(prisma: PrismaClient, data: WalletData) {
+  return prisma.wallet.create({
     data: {
       name: data.name,
       currency: data.currency ?? 'USD',
@@ -88,29 +88,29 @@ export async function accountBuilder(prisma: PrismaClient, data: AccountData) {
   });
 }
 
-export async function accountOwnerBuilder(
+export async function walletOwnerBuilder(
   prisma: PrismaClient,
-  accountId: string,
+  walletId: string,
   userId: string,
 ) {
-  return prisma.accountOwner.create({
+  return prisma.walletOwner.create({
     data: {
-      accountId,
+      walletId,
       userId,
     },
   });
 }
 
-export async function accountShareBuilder(
+export async function walletShareBuilder(
   prisma: PrismaClient,
-  data: AccountShareData,
+  data: WalletShareData,
 ) {
-  return prisma.accountShare.create({
+  return prisma.walletShare.create({
     data: {
-      accountId: data.accountId,
+      walletId: data.walletId,
       userId: data.userId,
-      permission: data.permission ?? AccountSharePermission.VIEW,
-      status: data.status ?? AccountShareStatus.ACCEPTED,
+      permission: data.permission ?? WalletSharePermission.VIEW,
+      status: data.status ?? WalletShareStatus.ACCEPTED,
     },
   });
 }
@@ -123,7 +123,7 @@ export async function categoryBuilder(
     data: {
       name: data.name,
       type: data.type,
-      accountId: data.accountId,
+      walletId: data.walletId,
     },
   });
 }
@@ -138,19 +138,19 @@ export async function transactionBuilder(
       type: data.type,
       description: data.description,
       date: data.date ?? new Date(),
-      accountId: data.accountId,
+      walletId: data.walletId,
       userId: data.userId,
       categoryId: data.categoryId,
-      subscriptionId: data.subscriptionId,
+      recurringTransactionId: data.recurringTransactionId,
     },
   });
 }
 
-export async function subscriptionBuilder(
+export async function recurringTransactionBuilder(
   prisma: PrismaClient,
-  data: SubscriptionData,
+  data: RecurringTransactionData,
 ) {
-  return prisma.subscription.create({
+  return prisma.recurringTransaction.create({
     data: {
       name: data.name,
       amount: data.amount,
@@ -162,7 +162,7 @@ export async function subscriptionBuilder(
       isActive: data.isActive ?? true,
       cycleDayOfMonth: data.cycleDayOfMonth,
       cycleDayOfWeek: data.cycleDayOfWeek,
-      accountId: data.accountId,
+      walletId: data.walletId,
       userId: data.userId,
       categoryId: data.categoryId,
     },

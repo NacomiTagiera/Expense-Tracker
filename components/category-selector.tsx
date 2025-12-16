@@ -12,7 +12,7 @@ import { trpc } from '@/lib/trpc-client';
 import { Skeleton } from './ui/skeleton';
 
 interface CategorySelectorProps {
-  accountId: string;
+  walletId: string;
   value: string;
   onValueChange: (value: string) => void;
   type: CategoryType;
@@ -24,7 +24,7 @@ interface CategorySelectorProps {
 }
 
 export function CategorySelector({
-  accountId,
+  walletId,
   value,
   onValueChange,
   type,
@@ -35,7 +35,7 @@ export function CategorySelector({
   allOptionLabel = 'All categories',
 }: CategorySelectorProps) {
   const { data: categories, isLoading } = trpc.category.list.useQuery({
-    accountId,
+    walletId,
     type,
   });
 
