@@ -28,3 +28,8 @@ next-env.d.ts
 
 .ai/
 .cursor/
+
+# Playwright
+/test-results/
+/playwright-report/
+tests/e2e/.auth/
