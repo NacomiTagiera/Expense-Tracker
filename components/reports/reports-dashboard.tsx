@@ -2,8 +2,9 @@
 
 import type { TransactionType } from '@prisma/client';
 import { endOfMonth, startOfMonth, subMonths } from 'date-fns';
-import { Loader2, TrendingDown, TrendingUp } from 'lucide-react';
-import { useState } from 'react';
+import { Download, Loader2 } from 'lucide-react';
+import { useCallback, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -11,6 +12,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -20,8 +27,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { downloadCSV, toCSV } from '@/lib/csv-export';
 import { trpc } from '@/lib/trpc-client';
-import { CategoryChart } from './category-chart';
+import { ComparisonCards } from './comparison-cards';
 import { MemberChart } from './member-chart';
 import { PieChart } from './pie-chart';
 import { RecurringTransactionChart } from './recurring-transaction-chart';
@@ -35,12 +44,21 @@ interface Props {
 export function ReportsDashboard({ walletId }: Props) {
   const defaultStartDate = startOfMonth(subMonths(new Date(), 1));
   const defaultEndDate = endOfMonth(new Date());
+  const defaultCompareStartDate = startOfMonth(subMonths(new Date(), 2));
+  const defaultCompareEndDate = endOfMonth(subMonths(new Date(), 1));
 
   const [startDate, setStartDate] = useState(
     defaultStartDate.toISOString().split('T')[0],
   );
   const [endDate, setEndDate] = useState(
     defaultEndDate.toISOString().split('T')[0],
+  );
+  const [comparisonMode, setComparisonMode] = useState(false);
+  const [compareStartDate, setCompareStartDate] = useState(
+    defaultCompareStartDate.toISOString().split('T')[0],
+  );
+  const [compareEndDate, setCompareEndDate] = useState(
+    defaultCompareEndDate.toISOString().split('T')[0],
   );
   const [trendInterval, setTrendInterval] = useState<
     'daily' | 'weekly' | 'monthly'
@@ -91,13 +109,28 @@ export function ReportsDashboard({ walletId }: Props) {
       interval: trendInterval,
     });
 
+  const { data: comparisonData, isLoading: comparisonLoading } =
+    trpc.report.comparePeriods.useQuery(
+      {
+        walletId,
+        currentStart: new Date(startDate),
+        currentEnd: new Date(endDate),
+        compareStart: new Date(compareStartDate),
+        compareEnd: new Date(compareEndDate),
+      },
+      {
+        enabled: comparisonMode,
+      },
+    );
+
   const isLoading =
     summaryLoading ||
     incomeLoading ||
     expenseLoading ||
     userLoading ||
     recurringTransactionLoading ||
-    trendLoading;
+    trendLoading ||
+    (comparisonMode && comparisonLoading);
 
   const incomePieData =
     incomeByCategory?.map((item) => ({
@@ -111,16 +144,145 @@ export function ReportsDashboard({ walletId }: Props) {
       value: item.amount,
     })) || [];
 
+  const exportSummary = useCallback(() => {
+    if (!summary) return;
+
+    const data = [
+      { metric: 'Total Income', value: summary.income },
+      { metric: 'Total Expenses', value: summary.expenses },
+      { metric: 'Net Balance', value: summary.net },
+      { metric: 'Transaction Count', value: summary.transactionCount },
+    ];
+
+    const csv = toCSV(data, [
+      { key: 'metric', header: 'Metric' },
+      { key: 'value', header: 'Value' },
+    ]);
+
+    downloadCSV(csv, `summary_${startDate}_to_${endDate}.csv`);
+  }, [summary, startDate, endDate]);
+
+  const exportCategories = useCallback(() => {
+    const incomeData =
+      incomeByCategory?.map((item) => ({
+        type: 'Income',
+        category: item.category,
+        amount: item.amount,
+      })) || [];
+
+    const expenseData =
+      expenseByCategory?.map((item) => ({
+        type: 'Expense',
+        category: item.category,
+        amount: item.amount,
+      })) || [];
+
+    const data = [...incomeData, ...expenseData];
+
+    const csv = toCSV(data, [
+      { key: 'type', header: 'Type' },
+      { key: 'category', header: 'Category' },
+      { key: 'amount', header: 'Amount' },
+    ]);
+
+    downloadCSV(csv, `categories_${startDate}_to_${endDate}.csv`);
+  }, [incomeByCategory, expenseByCategory, startDate, endDate]);
+
+  const exportTrends = useCallback(() => {
+    if (!trendData) return;
+
+    const csv = toCSV(trendData, [
+      { key: 'date', header: 'Date' },
+      { key: 'income', header: 'Income' },
+      { key: 'expense', header: 'Expense' },
+      { key: 'net', header: 'Net' },
+    ]);
+
+    downloadCSV(csv, `trends_${trendInterval}_${startDate}_to_${endDate}.csv`);
+  }, [trendData, trendInterval, startDate, endDate]);
+
+  const exportAll = useCallback(() => {
+    // Create a comprehensive report with all sections
+    let csvContent = '';
+
+    // Summary section
+    csvContent += 'SUMMARY\n';
+    if (summary) {
+      csvContent += `Metric,Value\n`;
+      csvContent += `Total Income,${summary.income}\n`;
+      csvContent += `Total Expenses,${summary.expenses}\n`;
+      csvContent += `Net Balance,${summary.net}\n`;
+      csvContent += `Transaction Count,${summary.transactionCount}\n`;
+    }
+    csvContent += '\n';
+
+    // Categories section
+    csvContent += 'INCOME BY CATEGORY\n';
+    csvContent += 'Category,Amount\n';
+    incomeByCategory?.forEach((item) => {
+      csvContent += `${item.category},${item.amount}\n`;
+    });
+    csvContent += '\n';
+
+    csvContent += 'EXPENSES BY CATEGORY\n';
+    csvContent += 'Category,Amount\n';
+    expenseByCategory?.forEach((item) => {
+      csvContent += `${item.category},${item.amount}\n`;
+    });
+    csvContent += '\n';
+
+    // Trends section
+    csvContent += `TRENDS (${trendInterval.toUpperCase()})\n`;
+    csvContent += 'Date,Income,Expense,Net\n';
+    trendData?.forEach((item) => {
+      csvContent += `${item.date},${item.income},${item.expense},${item.net}\n`;
+    });
+
+    downloadCSV(csvContent, `full_report_${startDate}_to_${endDate}.csv`);
+  }, [
+    summary,
+    incomeByCategory,
+    expenseByCategory,
+    trendData,
+    trendInterval,
+    startDate,
+    endDate,
+  ]);
+
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
-          <CardTitle>Date Range</CardTitle>
-          <CardDescription>
-            Select the period for your financial report
-          </CardDescription>
+        <CardHeader className="flex flex-row items-start justify-between">
+          <div className="space-y-1.5">
+            <CardTitle>Date Range</CardTitle>
+            <CardDescription>
+              Select the period for your financial report
+            </CardDescription>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" disabled={isLoading}>
+                <Download className="mr-2 size-4" />
+                Export CSV
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={exportAll}>
+                Full Report
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportSummary}>
+                Summary Only
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportCategories}>
+                Categories
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportTrends}>
+                Trends
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
           <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <Label htmlFor="startDate">Start Date</Label>
@@ -159,16 +321,58 @@ export function ReportsDashboard({ walletId }: Props) {
               </Select>
             </div>
           </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="comparison-mode"
+              checked={comparisonMode}
+              onCheckedChange={setComparisonMode}
+            />
+            <Label htmlFor="comparison-mode">
+              Compare with another period
+            </Label>
+          </div>
+
+          {comparisonMode && (
+            <div className="grid gap-4 rounded-lg border bg-muted/50 p-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="compareStartDate">Comparison Start Date</Label>
+                <Input
+                  id="compareStartDate"
+                  type="date"
+                  value={compareStartDate}
+                  onChange={(e) => setCompareStartDate(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="compareEndDate">Comparison End Date</Label>
+                <Input
+                  id="compareEndDate"
+                  type="date"
+                  value={compareEndDate}
+                  onChange={(e) => setCompareEndDate(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <Loader2 className="size-8 animate-spin text-muted-foreground" />
         </div>
       ) : (
         <>
-          <SummaryCards summary={summary} />
+          {comparisonMode && comparisonData ? (
+            <ComparisonCards
+              current={comparisonData.current}
+              compare={comparisonData.compare}
+              changes={comparisonData.changes}
+            />
+          ) : (
+            <SummaryCards summary={summary} />
+          )}
 
           <TrendChart
             title="Income & Expense Trends"

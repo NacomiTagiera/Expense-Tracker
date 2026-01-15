@@ -174,17 +174,6 @@ export const reportRouter = router({
           ],
         },
         include: {
-          owners: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                },
-              },
-            },
-          },
           user: {
             select: {
               id: true,
@@ -229,6 +218,7 @@ export const reportRouter = router({
           if (!acc[oderedUserId]) {
             acc[oderedUserId] = {
               oderedUserId,
+              userId: t.user.id,
               name: userName,
               email: t.user.email,
               income: 0,
@@ -248,6 +238,7 @@ export const reportRouter = router({
           string,
           {
             oderedUserId: string;
+            userId: string;
             name: string;
             email: string;
             income: number;
@@ -435,5 +426,113 @@ export const reportRouter = router({
           net: data.income - data.expense,
         }))
         .sort((a, b) => a.date.localeCompare(b.date));
+    }),
+
+  comparePeriods: protectedProcedure
+    .input(
+      z.object({
+        walletId: z.string(),
+        currentStart: z.date(),
+        currentEnd: z.date(),
+        compareStart: z.date(),
+        compareEnd: z.date(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const hasAccess = await ctx.prisma.wallet.findFirst({
+        where: {
+          id: input.walletId,
+          OR: [
+            { userId: ctx.session.userId },
+            {
+              shares: {
+                some: {
+                  userId: ctx.session.userId,
+                  status: WalletShareStatus.ACCEPTED,
+                },
+              },
+            },
+          ],
+        },
+      });
+
+      if (!hasAccess) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Access denied',
+        });
+      }
+
+      // Fetch transactions for both periods in parallel
+      const [currentTransactions, compareTransactions] = await Promise.all([
+        ctx.prisma.transaction.findMany({
+          where: {
+            walletId: input.walletId,
+            date: {
+              gte: input.currentStart,
+              lte: input.currentEnd,
+            },
+          },
+        }),
+        ctx.prisma.transaction.findMany({
+          where: {
+            walletId: input.walletId,
+            date: {
+              gte: input.compareStart,
+              lte: input.compareEnd,
+            },
+          },
+        }),
+      ]);
+
+      // Calculate summary for current period
+      const currentIncome = currentTransactions
+        .filter((t) => t.type === TransactionType.INCOME)
+        .reduce((sum, t) => sum + Number(t.amount), 0);
+      const currentExpenses = currentTransactions
+        .filter((t) => t.type === TransactionType.EXPENSE)
+        .reduce((sum, t) => sum + Number(t.amount), 0);
+      const currentNet = currentIncome - currentExpenses;
+
+      // Calculate summary for compare period
+      const compareIncome = compareTransactions
+        .filter((t) => t.type === TransactionType.INCOME)
+        .reduce((sum, t) => sum + Number(t.amount), 0);
+      const compareExpenses = compareTransactions
+        .filter((t) => t.type === TransactionType.EXPENSE)
+        .reduce((sum, t) => sum + Number(t.amount), 0);
+      const compareNet = compareIncome - compareExpenses;
+
+      // Calculate percentage changes
+      const calculateChange = (current: number, previous: number) => {
+        if (previous === 0) {
+          return current > 0 ? 100 : 0;
+        }
+        return ((current - previous) / previous) * 100;
+      };
+
+      return {
+        current: {
+          income: currentIncome,
+          expenses: currentExpenses,
+          net: currentNet,
+          transactionCount: currentTransactions.length,
+        },
+        compare: {
+          income: compareIncome,
+          expenses: compareExpenses,
+          net: compareNet,
+          transactionCount: compareTransactions.length,
+        },
+        changes: {
+          income: calculateChange(currentIncome, compareIncome),
+          expenses: calculateChange(currentExpenses, compareExpenses),
+          net: calculateChange(currentNet, compareNet),
+          transactionCount: calculateChange(
+            currentTransactions.length,
+            compareTransactions.length,
+          ),
+        },
+      };
     }),
 });
