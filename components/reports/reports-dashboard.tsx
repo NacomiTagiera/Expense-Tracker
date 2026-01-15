@@ -401,14 +401,6 @@ export function ReportsDashboard({ walletId }: Props) {
               data={userData}
             />
           )}
-
-          {recurringTransactionData && recurringTransactionData.length > 0 && (
-            <RecurringTransactionChart
-              title="Recurring Transaction Spending"
-              description="Total spending on recurring transactions"
-              data={recurringTransactionData}
-            />
-          )}
         </>
       )}
     </div>
