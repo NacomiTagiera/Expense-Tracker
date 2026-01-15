@@ -22,23 +22,17 @@ enum RecurringFrequency {
   WEEKLY  @map("weekly")
   MONTHLY @map("monthly")
   YEARLY  @map("yearly")
-
-  @@map("SubscriptionFrequency")
 }
 
 enum WalletSharePermission {
   VIEW @map("view")
   EDIT @map("edit")
-
-  @@map("AccountSharePermission")
 }
 
 enum WalletShareStatus {
   PENDING  @map("pending")
   ACCEPTED @map("accepted")
   DECLINED @map("declined")
-
-  @@map("AccountShareStatus")
 }
 
 model User {
@@ -50,7 +44,6 @@ model User {
   updatedAt DateTime @updatedAt
 
   wallets               Wallet[]
-  ownedWallets          WalletOwner[]
   sharedWallets         WalletShare[]
   transactions          Transaction[]
   recurringTransactions RecurringTransaction[]
@@ -69,33 +62,18 @@ model Wallet {
 
   userId                String
   user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  owners                WalletOwner[]
   shares                WalletShare[]
   transactions          Transaction[]
   recurringTransactions RecurringTransaction[]
   categories            Category[]
 
   @@index([userId])
-  @@map("accounts")
-}
-
-model WalletOwner {
-  id        String   @id @default(cuid())
-  walletId  String   @map("accountId")
-  userId    String
-  createdAt DateTime @default(now())
-
-  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([walletId, userId], map: "account_owners_accountId_userId_key")
-  @@index([userId])
-  @@map("account_owners")
+  @@map("wallets")
 }
 
 model WalletShare {
   id         String                @id @default(cuid())
-  walletId   String                @map("accountId")
+  walletId   String                @map("walletId")
   userId     String
   permission WalletSharePermission @default(VIEW)
   status     WalletShareStatus     @default(PENDING)
@@ -105,9 +83,9 @@ model WalletShare {
   wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([walletId, userId], map: "account_shares_accountId_userId_key")
+  @@unique([walletId, userId], map: "wallet_shares_walletId_userId_key")
   @@index([userId])
-  @@map("account_shares")
+  @@map("wallet_shares")
 }
 
 model Category {
@@ -117,13 +95,13 @@ model Category {
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
-  walletId              String                 @map("accountId")
+  walletId              String                 @map("walletId")
   wallet                Wallet                 @relation(fields: [walletId], references: [id], onDelete: Cascade)
   transactions          Transaction[]
   recurringTransactions RecurringTransaction[]
 
-  @@unique([walletId, name, type], map: "categories_accountId_name_type_key")
-  @@index([walletId, type], map: "categories_accountId_type_idx")
+  @@unique([walletId, name, type], map: "categories_walletId_name_type_key")
+  @@index([walletId, type], map: "categories_walletId_type_idx")
   @@map("categories")
 }
 
@@ -136,20 +114,20 @@ model Transaction {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
-  walletId               String                @map("accountId")
+  walletId               String                @map("walletId")
   wallet                 Wallet                @relation(fields: [walletId], references: [id], onDelete: Cascade)
   userId                 String
   user                   User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   categoryId             String
   category               Category              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  recurringTransactionId String?               @map("subscriptionId")
+  recurringTransactionId String?               @map("recurringTransactionId")
   recurringTransaction   RecurringTransaction? @relation(fields: [recurringTransactionId], references: [id], onDelete: SetNull)
 
-  @@index([walletId], map: "transactions_accountId_idx")
+  @@index([walletId], map: "transactions_walletId_idx")
   @@index([userId])
   @@index([date])
   @@index([categoryId])
-  @@index([recurringTransactionId], map: "transactions_subscriptionId_idx")
+  @@index([recurringTransactionId], map: "transactions_recurringTransactionId_idx")
   @@map("transactions")
 }
 
@@ -170,7 +148,7 @@ model RecurringTransaction {
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 
-  walletId     String        @map("accountId")
+  walletId     String        @map("walletId")
   wallet       Wallet        @relation(fields: [walletId], references: [id], onDelete: Cascade)
   userId       String
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -178,8 +156,8 @@ model RecurringTransaction {
   category     Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   transactions Transaction[]
 
-  @@index([walletId], map: "subscriptions_accountId_idx")
-  @@index([userId], map: "subscriptions_userId_idx")
-  @@index([categoryId], map: "subscriptions_categoryId_idx")
-  @@map("subscriptions")
+  @@index([walletId], map: "recurring_transactions_walletId_idx")
+  @@index([userId], map: "recurring_transactions_userId_idx")
+  @@index([categoryId], map: "recurring_transactions_categoryId_idx")
+  @@map("recurring_transactions")
 }

@@ -88,19 +88,6 @@ export async function walletBuilder(prisma: PrismaClient, data: WalletData) {
   });
 }
 
-export async function walletOwnerBuilder(
-  prisma: PrismaClient,
-  walletId: string,
-  userId: string,
-) {
-  return prisma.walletOwner.create({
-    data: {
-      walletId,
-      userId,
-    },
-  });
-}
-
 export async function walletShareBuilder(
   prisma: PrismaClient,
   data: WalletShareData,

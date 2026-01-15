@@ -46,17 +46,6 @@ export const walletRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const ownedWalletsCount = await ctx.prisma.wallet.count({
-        where: { userId: ctx.session.userId },
-      });
-
-      if (ownedWalletsCount >= 3) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Maximum of 3 wallets allowed per user',
-        });
-      }
-
       const wallet = await ctx.prisma.wallet.create({
         data: {
           name: input.name,
@@ -64,11 +53,6 @@ export const walletRouter = router({
           balance: input.balance,
           description: input.description,
           userId: ctx.session.userId,
-          owners: {
-            create: {
-              userId: ctx.session.userId,
-            },
-          },
           categories: {
             createMany: {
               data: [

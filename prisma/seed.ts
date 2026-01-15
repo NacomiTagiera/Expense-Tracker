@@ -9,7 +9,6 @@ import {
 import { startOfDay, subDays, subWeeks } from 'date-fns';
 import {
   walletBuilder,
-  walletOwnerBuilder,
   walletShareBuilder,
   categoryBuilder,
   recurringTransactionBuilder,
@@ -25,7 +24,6 @@ async function main() {
   await prisma.transaction.deleteMany();
   await prisma.recurringTransaction.deleteMany();
   await prisma.walletShare.deleteMany();
-  await prisma.walletOwner.deleteMany();
   await prisma.wallet.deleteMany();
   await prisma.category.deleteMany();
   await prisma.user.deleteMany();
@@ -49,8 +47,6 @@ async function main() {
     description: 'Primary checking account',
     userId: accountOwner.id,
   });
-
-  await walletOwnerBuilder(prisma, wallet.id, accountOwner.id);
 
   await walletShareBuilder(prisma, {
     walletId: wallet.id,
